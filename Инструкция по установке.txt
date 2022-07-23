@@ -1,16 +1,15 @@
 **ПРИ ПЕРВОЙ УСТАНОВКЕ**
-0. Установите Git по ссылке https://git-scm.com/book/ru/v2/Введение-Установка-Git - там ничего сложного, следуйте инструкции.
-1. Скопируйте путь до папки с модом. У меня это D:\steam\steamapps\common\Dawn of War Soulstorm\W40KCastleFight
-2. Запустите cmd (загуглите, если не знаете как)
-3. По очереди введите следующие команды:
-3.1 cd *скопированный путь, без звездочек*
-3.2 git init
-3.3 git remote add W40K_CF https://github.com/YaroslavMestkovsky/W40K_CF.git
-3.4 git checkout -b master
-3.5 git pull W40K_CF master
+0. Установите Git по ссылке https://git-scm.com/book/ru/v2/Введение-Установка-Git - там ничего сложного, следуйте инструкции (все время нажимаем далее, ничего не тыкаем).
+1. Перейдите в папку W40KCastleFight
+2. Нажмите ПКМ и выберите Git Bash Here
+3. В появившемся окне по очереди вводите следующие команды:
+3.1 git init
+3.2 git remote add W40K_CF https://github.com/YaroslavMestkovsky/W40K_CF.git
+3.3 git checkout -b master
+3.4 git pull W40K_CF master
+3.5 В появившемся окне выберите token и введите код: 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
 4. Готово, играйте.
 
 **ПРИ ОБНОВЛЕНИИ
-1. Повторить пункты 1, 2, 3.1
-2. Введите git pull W40K_CF master
-3. Готово, играйте.
+1. Повторить пункты 1, 2, 3.4
+2. Готово, играйте.

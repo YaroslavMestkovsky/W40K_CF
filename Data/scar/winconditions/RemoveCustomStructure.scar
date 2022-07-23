@@ -1,0 +1,230 @@
+--Aliaska_RuS
+--SorryOK(rus)
+
+import("ScarUtil.scar")
+import("WXPScarUtil.scar")
+import("Player.scar");
+import("GroupCallers.scar");
+import("Command.scar");
+import("Groups.scar");
+import("WXPGroups.scar");
+
+
+function OnInitRem()
+tempbuild =
+{	
+}
+listrestrictChaosBuild =
+{
+	
+}
+listrestrictDarkEldarBuild =
+{
+   
+}
+listrestrictEldarBuild =
+{
+	
+}
+listrestrictGuardBuild =
+{
+
+}
+listrestrictNecronBuild =
+{
+    
+}
+listrestrictORKBuild = 
+{
+ "cf_ork_hq",
+ "cf_ork_boy_hut",
+}
+listrestrictSistersBuild =
+{
+	
+}
+listrestrictSpaceMarineBuild = 
+{
+ "cf_space_marine_barracks",
+ "cf_space_marine_vehicle_building",
+ "cf_space_marine_hq",
+}
+listrestrictTauBuild =
+{
+   
+}
+listrestrictDeamonBuild =
+{
+
+}
+listrestrictInquisitionBuild =
+{
+
+}
+listrestrictTyranidsBuild =
+{
+
+}
+listrestrictAllStructure =
+{
+    "chaos_greater_sacrificial_circle",
+	"chaos_hq",
+	"chaos_listening_post",
+	"chaos_machine_pit",
+	"chaos_plasma_generator",
+	"chaos_sacrificial_circle",
+	"chaos_temple",
+	"chaos_thermo_plasma_generator",
+	"chaos_turret_bolter",
+	"chaos_armoury",
+	"dark_eldar_hq_sp_dxp3",
+	"dark_eldar_listening_post",
+	"dark_eldar_plasma_generator",
+	"dark_eldar_skimmer_shop",
+	"dark_eldar_slave_caravel",
+	"dark_eldar_soul_cage",
+	"dark_eldar_thermo_plasma",
+	"dark_eldar_wych_cult_arena",
+	"dark_eldar_haemonculus_laboratory",
+	"dark_eldar_hall_of_blood",
+	"dark_eldar_hq",
+	"eldar_hq",
+	"eldar_listening_post",
+	"eldar_soul_shrine",
+	"eldar_support_platform_scatterlaser",
+	"eldar_support_platform_cannon_sp",
+	"eldar_support_portal",
+	"eldar_warp_generator",
+	"eldar_webway_gate",
+	"eldar_aspect_portal",
+	"guard_listening_post",
+	"guard_mars_pattern",
+	"guard_mechanized",
+	"guard_plasma_generator",
+	"guard_tactica",
+	"guard_thermo_plasma",
+	"guard_turret_heavy_bolter",
+	"guard_turret_missile_launcher_sp",
+	"guard_hq",
+	"guard_infantry",
+	"necron_forbidden_archive",
+	"necron_greater_summoning_core",
+	"necron_listening_post",
+	"necron_plasma_generator",
+	"necron_summoning_core",
+	"necron_summoning_core_big",
+	"necron_thermoplasma_generator",
+	"necron_turret",
+	"necron_turret_missile_sp",
+	"monolith",
+	"necron_energy_core",
+	"necron_summoning_core_big",
+	"cf_ork_hq",
+	"ork_mine_field",
+	"ork_boy_hut",
+	"ork_gork_totem",
+	"ork_hq",
+	"ork_mek_shop",
+	"ork_pile_o_guns",
+	"ork_giant_waagh_banner_sp_dxp3",
+	"ork_waagh_banner",
+	"ork_waagh_banner_turret_sp",
+	"ork_waagh_banner_missile_sp",
+	"ork_bigger_generator",
+	"ork_generator",
+	"sisters_plasma_generator",
+	"sisters_sanctuary",
+	"sisters_shrine",
+	"sisters_thermo_plasma",
+	"sisters_turret_flamer",
+	"sisters_vehicle_building",
+	"sisters_holy_reliquary",
+	"sisters_hq",
+	"sisters_infantry",
+	"sisters_listening_post",
+	"CF_space_marine_hq",
+	"space_marine_armoury",
+	"space_marine_barracks",
+	"space_marine_generator",
+	"space_marine_hq",
+	"space_marine_interface_relay",
+	"space_marine_listening_post",
+	"space_marine_orbital_relay",
+	"space_marine_thermo_generator",
+	"space_marine_turret_bolter",
+	"space_marine_turret_missile_sp",
+	"space_marine_vehicle_building",
+	"space_marine_ability_building",
+	"tau_hq",
+	"tau_kroot_nest",
+	"tau_listening_post",
+	"tau_plasma_generator",
+	"tau_research_building",
+	"tau_shrine_of_kauyon",
+	"tau_shrine_of_montka",
+	"tau_shrine_of_purpose",
+	"tau_thermoplasma_generator",
+	"tau_vehicle_building",
+	"tau_barracks",
+}
+
+Rule_AddOneShot(restrictModStructure,0)
+
+end
+
+
+
+Scar_AddInit(OnInitRem)
+
+
+function restrictModStructure ()
+	local count = World_GetPlayerCount();
+	for i = 0, count-1
+	do
+		
+		local player = World_GetPlayerAt(i);
+		
+		if (Player_GetRaceName(player) == "chaos_marine_race") then
+			tempbuild = listrestrictChaosBuild
+
+		elseif (Player_GetRaceName(player) == "dark_eldar_race") then
+			tempbuild = listrestrictDarkEldarBuild
+			
+		elseif (Player_GetRaceName(player) == "eldar_race") then
+			tempbuild = listrestrictEldarBuild
+		
+		elseif (Player_GetRaceName(player) == "guard_race") then
+			tempbuild = listrestrictGuardBuild
+		
+		elseif (Player_GetRaceName(player) == "necron_race") then
+			tempbuild = listrestrictNecronBuild
+		
+		elseif (Player_GetRaceName(player) == "ork_race") then
+			tempbuild = listrestrictORKBuild
+			
+		elseif (Player_GetRaceName(player) == "sisters_race") then			
+			tempbuild = listrestrictSistersBuild
+		
+		elseif (Player_GetRaceName(player) == "space_marine_race") then
+			tempbuild = listrestrictSpaceMarineBuild
+			
+		elseif (Player_GetRaceName(player) == "tau_race") then
+			tempbuild = listrestrictTauBuild
+			
+		elseif (Player_GetRaceName(player) == "deamons_race") then
+			tempbuild = listrestrictDeamonBuild
+			
+		elseif (Player_GetRaceName(player) == "inquisition_daemonhunt_race") then
+			tempbuild = listrestrictInquisitionBuild
+			
+		elseif (Player_GetRaceName(player) == "tyranids_race") then
+			tempbuild = listrestrictTyranidsBuild
+		end
+		
+		for i=1,table.getn( tempbuild ) do
+			local structure = tempbuild[i];
+		
+			Player_RestrictBuilding(player, structure);
+		end 
+	end
+end
