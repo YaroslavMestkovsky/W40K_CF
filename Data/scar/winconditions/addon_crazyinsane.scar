@@ -25,7 +25,7 @@ function CrazyInsane()
 		local player = World_GetPlayerAt(i)
 		local race = Player_GetRaceName(player)
 		
-		import("mod_core/BreachEntityList.scar");
+		import("mod_core/CastleEntityList.scar");
 		
 		-- Set everything to be created quickly, and produce everything, quickly.
 		for i=1,table.getn( t_entity_list ) do

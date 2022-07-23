@@ -1,0 +1,1254 @@
+--Aliaska_RuS
+--SorryOK(rus)
+
+import("ScarUtil.scar")
+import("WXPScarUtil.scar")
+import("Player.scar");
+import("GroupCallers.scar");
+import("Command.scar");
+import("Groups.scar");
+import("WXPGroups.scar");
+
+function OnGameSetup ()
+	Setup_Player(2, "SorryOK(rus)", "ork_race", 0)
+	Setup_Player(3, "Aliaska_RuS", "ork_race", 1)
+end
+
+function CastleMain ()
+
+
+	ePlayer1ID = World_GetPlayerAt(0)
+	sPlayer1Race = Player_GetRaceName(ePlayer1ID)
+	ePlayer2ID = World_GetPlayerAt(1)
+	sPlayer2Race = Player_GetRaceName(ePlayer2ID)
+	ePlayer3ID = World_GetPlayerAt(2)
+	ePlayer4ID = World_GetPlayerAt(3)
+
+	_HQ = {}
+	
+	_CreateEntity_Private = {
+
+	CreateEntity = function( playerId, EntitygroupName, EntityBlueprint, pos, numEntity, bSpawn )	
+		-- only create sgroup if it doesnt exist yet
+		local EgroupId = EGroup_CreateIfNotFound( EntitygroupName )
+		
+		local temp = EGroup_CreateIfNotFound( "tempEGroup")
+		EGroup_Clear( temp )
+		
+		for i = 1, numEntity do
+
+			-- create the entity
+			local EntityId = Entity_Create( EntityBlueprint, playerId, pos )
+			
+			-- add to group
+			EGroup_Add(EgroupId, EntityId)
+					
+--~ 			local spawnPos = World_Pos( xrand + pos.x, pos.y, zrand + pos.z )
+			local spawnPos = World_Pos( pos.x, pos.y, pos.z )
+			
+			if( bSpawn ~= nil and bSpawn == true ) then
+				-- spawn it
+				Entity_Spawn( EntityId )
+				EGroup_Add( temp, EntityId )
+			end
+			
+		end
+		
+		EGroup_Clear( temp )
+		
+		return EgroupId	
+	end,
+}
+	timer = 0 
+
+	unitattack1 = "unit1"
+	unitattack2 = "unit2"
+	unitattack3 = "unit3"
+	unitattack4 = "unit4"
+    
+	hqtemp1 = "hq1"
+	hqtemp2 = "hq2"
+	
+	tempengineer1 = "engineer1"
+	tempengineer2 = "engineer2"
+
+end
+
+function OnInit()
+	CastleMain()
+	tempbuild1 = 
+	
+	{
+	}
+	
+	--FOW_RevealAll()
+	--Player_SetAllResources(ePlayer1ID, 250, 25)
+	--Player_SetAllResources(ePlayer2ID, 250, 25)
+
+	Cpu_Enable(ePlayer3ID, false)
+	Cpu_Enable(ePlayer4ID, false)
+	
+	Rule_AddInterval( Timer, 1 )
+	Rule_AddInterval( Transfer1, 1 )
+	Rule_AddInterval( Transfer2, 1 )
+	Rule_AddOneShot ( Rem, 0.2 )
+	Rule_AddOneShot ( UnRestrictCustomStructure,0.5)
+	--Rule_AddOneShot ( UnRestrictAll, 200)
+	
+	restrictunitall()
+	
+	rEntity(ePlayer3ID, "ork_hq")
+	rEntity(ePlayer4ID, "ork_hq")
+	
+
+	
+end
+
+function Rem()
+import("winconditions/RemoveCustomStructure.scar");
+end
+
+function DestroyHQ()
+	
+	InitHQ()
+	
+	-- wait a bit of time before adding this rule so it doesnt get executed on the same frame as the other win
+	-- conditions
+	Rule_AddOneShot( DestroyHQ_AddMainRule, 0.75 )
+	
+	obj_table_P4 = { title_id = 60006, short_desc_id = 60306, help_tip_id = 60306 }
+	
+	Objective_Add( obj_table_P4, 1 )
+end
+
+function DestroyHQ_AddMainRule()
+	Rule_AddInterval(CheckDestroyHQ, 0.2);
+end
+
+function InitHQ()
+            -- get the hq for all players
+            for i = 1, 2
+
+            do
+                        -- this player
+                        local player = World_GetPlayerAt(i-1);
+                        local playerRace = Player_GetRaceName(player);
+                        local hqBlueprint = "";
+
+                        			-- what hq are we looking for?
+                        if     playerRace == "chaos_marine_race" then
+							hqBlueprint = "Сhaos_hq"
+
+						elseif playerRace == "dark_eldar_race" then
+							hqBlueprint = "dark_eldar_hq"
+							
+						elseif playerRace == "deamons_race" then
+							hqBlueprint = "daemon_hq"
+
+						elseif playerRace == "eldar_race" then
+							hqBlueprint = "eldar_hq"
+
+						elseif playerRace == "guard_race" then
+							hqBlueprint = "guard_hq"
+							
+						elseif playerRace == "inquisition_daemonhunt_race" then
+							hqBlueprint = "inquisition_tower_hq"
+
+						elseif playerRace == "necron_race" then
+							hqBlueprint = "monolith"
+
+						elseif playerRace == "ork_race" then
+							hqBlueprint = "cf_ork_hq"
+
+						elseif playerRace == "sisters_race" then
+							hqBlueprint = "sisters_hq"
+
+						elseif playerRace == "space_marine_race" then
+							hqBlueprint = "cf_space_marine_hq"
+
+						elseif playerRace == "tau_race" then
+							hqBlueprint = "tau_hq"
+							
+						elseif playerRace == "tyranids_race" then
+							hqBlueprint = "tyranids_hq"
+
+						end
+
+                        -- if we dont have a blueprint we are screwed
+                        if hqBlueprint == "" then  
+                                    print("invalid hq blueprint" );
+                        end
+
+						-- cache race & blueprint id for faster access later
+						_HQ[i] = { }
+						_HQ[i].HQID = Entity_GetBlueprintIDFromName( hqBlueprint );
+            end
+
+end
+
+function UpdateHQ()
+            -- get the hq for all players and place them in the commanders table.
+            for i = 1, 2
+
+            do
+                        -- this player
+                        local player = World_GetPlayerAt(i-1);
+
+                        --get all players entities, check for hq
+                        playerentities = Player_GetEntities( player );
+
+                        local CheckForHQ = function( egroupid, itemindex, entityID )
+						
+                                    if Entity_GetBlueprintID( entityID ) == _HQ[i].HQID then
+									
+                                                _HQ[i].GroupGorHQ = EGroup_CreateIfNotFound( i )
+												EGroup_Add( _HQ[i].GroupGorHQ, entityID)
+                                                -- give the player grots at their HQ                                               
+                                    end
+                        end
+
+                        -- find the hq
+                        EGroup_ForEach( playerentities, CheckForHQ );
+
+            end
+
+end
+
+function CheckDestroyHQ()
+
+	-- update HQ count
+	UpdateHQ();
+
+	for i = 1, 2 
+	do
+		local player = World_GetPlayerAt(i-1);
+	
+		--if no hqs, player dies
+		if( Player_IsAlive(player) ) then
+			if( EGroup_Count( _HQ[i].GroupGorHQ ) == 0 ) then
+				Player_Kill(player);
+			end
+		end
+	end
+	
+	-- check if only one team left -- if only one team left, they win and everybody else loses
+	Util_CheckOneTeamLeft("destroyhq");
+end
+
+function AddArmy_Builders()
+	
+	-- Add an army to the game.
+	local count = World_GetPlayerCount()
+	for i = 0, count-1
+	do
+		local player = World_GetPlayerAt(i)
+		local pos = Player_GetStartPosition(player)
+		--local race = Player_GetRace(player)
+	
+	    if (Player_GetRaceName(player) == "chaos_marine_race") then
+			Util_CreateSquadsAtPosition(player, "startbuilder", "chaos_squad_slave", pos, 1)
+
+		elseif (Player_GetRaceName(player) == "dark_eldar_race") then
+			Util_CreateSquadsAtPosition(player, "startbuilder", "dark_eldar_squad_slave", pos, 1)
+			
+		elseif (Player_GetRaceName(player) == "eldar_race") then
+			Util_CreateSquadsAtPosition(player, "startbuilder", "eldar_squad_bonesinger", pos, 1)
+		
+		elseif (Player_GetRaceName(player) == "guard_race") then
+			Util_CreateSquadsAtPosition(player, "startbuilder", "guard_squad_enginseer", pos, 1)
+		
+		elseif (Player_GetRaceName(player) == "necron_race") then
+			Util_CreateSquadsAtPosition(player, "startbuilder", "necron_builder_scarab_squad", pos, 1)
+		
+		elseif (Player_GetRaceName(player) == "ork_race") then
+			Util_CreateSquadsAtPosition(player, "startbuilder", "cf_ork_squad_grot", pos, 1)
+			
+		elseif (Player_GetRaceName(player) == "sisters_race") then			
+			Util_CreateSquadsAtPosition(player, "startbuilder", "sisters_squad_servitor", pos, 1)
+		
+		elseif (Player_GetRaceName(player) == "space_marine_race") then
+			Util_CreateSquadsAtPosition(player, "startbuilder", "cf_space_marine_squad_servitor", pos, 1)
+			
+		elseif (Player_GetRaceName(player) == "tau_race") then
+			Util_CreateSquadsAtPosition(player, "startbuilder", "tau_builder_squad", pos, 1)
+			
+		elseif (Player_GetRaceName(player) == "deamons_race") then
+			Util_CreateSquadsAtPosition(player, "startbuilder", "daemon_squad_lost_soul", pos, 1)
+			
+		elseif (Player_GetRaceName(player) == "inquisition_daemonhunt_race") then
+			Util_CreateSquadsAtPosition(player, "startbuilder", "inquisition_squad_archivist", pos, 1)
+			
+		elseif (Player_GetRaceName(player) == "tyranids_race") then
+			Util_CreateSquadsAtPosition(player, "startbuilder", "tyranids_squad_ripperswarm", pos, 1)
+		end
+	end
+
+end
+
+function Util_CreateEntityAtPositionEx( playerId, EntitygroupName, EntityBlueprint, pos, numEntity )	
+	local groupID = _CreateEntity_Private.CreateEntity(
+		playerId,
+		EntitygroupName,
+		EntityBlueprint,
+		pos,
+		numEntity,
+		true -- spawn
+	)
+	
+	return groupID
+end
+
+function sEntityHQ()
+    for i = 1, 2
+
+            do
+                        -- this player
+                        local player = World_GetPlayerAt(i-1);
+                        local playerRace = Player_GetRaceName(player);
+                        local hqBlueprint = "";
+
+                        			-- what hq are we looking for?
+                        if     playerRace == "chaos_marine_race" then
+							hqBlueprint = "chaos_hq"
+
+						elseif playerRace == "dark_eldar_race" then
+							hqBlueprint = "dark_eldar_hq"
+							
+						elseif playerRace == "deamons_race" then
+							hqBlueprint = "daemon_hq"
+
+						elseif playerRace == "eldar_race" then
+							hqBlueprint = "eldar_hq"
+
+						elseif playerRace == "guard_race" then
+							hqBlueprint = "guard_hq"
+							
+						elseif playerRace == "inquisition_daemonhunt_race" then
+							hqBlueprint = "inquisition_tower_hq"
+
+						elseif playerRace == "necron_race" then
+							hqBlueprint = "monolith"
+
+						elseif playerRace == "ork_race" then
+							hqBlueprint = "cf_ork_hq"
+
+						elseif playerRace == "sisters_race" then
+							hqBlueprint = "sisters_hq"
+
+						elseif playerRace == "space_marine_race" then
+							hqBlueprint = "space_marine_hq"
+
+						elseif playerRace == "tau_race" then
+							hqBlueprint = "tau_hq"
+							
+						elseif playerRace == "tyranids_race" then
+							hqBlueprint = "tyranids_hq"
+
+						end
+						rEntity ( player, hqBlueprint )
+            end
+
+	for i = 1, 1
+
+            do
+                        -- this player
+                        local player = World_GetPlayerAt(i-1);
+                        local playerRace = Player_GetRaceName(player);
+                        local hqBlueprint = "";
+						local pos = Player_GetStartPosition(player)
+
+                        			-- what hq are we looking for?
+                        if     playerRace == "chaos_marine_race" then
+							hqBlueprint = "chaos_hq"
+
+						elseif playerRace == "dark_eldar_race" then
+							hqBlueprint = "dark_eldar_hq"
+							
+						elseif playerRace == "deamons_race" then
+							hqBlueprint = "daemon_hq"
+
+						elseif playerRace == "eldar_race" then
+							hqBlueprint = "eldar_hq"
+
+						elseif playerRace == "guard_race" then
+							hqBlueprint = "guard_hq"
+							
+						elseif playerRace == "inquisition_daemonhunt_race" then
+							hqBlueprint = "inquisition_tower_hq"
+
+						elseif playerRace == "necron_race" then
+							hqBlueprint = "monolith"
+
+						elseif playerRace == "ork_race" then
+							hqBlueprint = "cf_ork_hq"
+
+						elseif playerRace == "sisters_race" then
+							hqBlueprint = "sisters_hq"
+
+						elseif playerRace == "space_marine_race" then
+							hqBlueprint = "cf_space_marine_hq"
+
+						elseif playerRace == "tau_race" then
+							hqBlueprint = "tau_hq"
+							
+						elseif playerRace == "tyranids_race" then
+							hqBlueprint = "tyranids_hq"
+
+						end
+    Util_CreateEntityAtPositionEx( player, hqtemp1, hqBlueprint, pos, 1)
+            end
+	for i = 2, 2
+
+            do
+                        -- this player
+                        local player = World_GetPlayerAt(i-1);
+                        local playerRace = Player_GetRaceName(player);
+                        local hqBlueprint = "";
+						local pos = Player_GetStartPosition(player)
+
+                        			-- what hq are we looking for?
+                        if     playerRace == "chaos_marine_race" then
+							hqBlueprint = "chaos_hq"
+
+						elseif playerRace == "dark_eldar_race" then
+							hqBlueprint = "dark_eldar_hq"
+							
+						elseif playerRace == "deamons_race" then
+							hqBlueprint = "daemon_hq"
+
+						elseif playerRace == "eldar_race" then
+							hqBlueprint = "eldar_hq"
+
+						elseif playerRace == "guard_race" then
+							hqBlueprint = "guard_hq"
+							
+						elseif playerRace == "inquisition_daemonhunt_race" then
+							hqBlueprint = "inquisition_tower_hq"
+
+						elseif playerRace == "necron_race" then
+							hqBlueprint = "monolith"
+
+						elseif playerRace == "ork_race" then
+							hqBlueprint = "cf_ork_hq"
+
+						elseif playerRace == "sisters_race" then
+							hqBlueprint = "sisters_hq"
+
+						elseif playerRace == "space_marine_race" then
+							hqBlueprint = "cf_space_marine_hq"
+
+						elseif playerRace == "tau_race" then
+							hqBlueprint = "tau_hq"
+							
+						elseif playerRace == "tyranids_race" then
+							hqBlueprint = "tyranids_hq"
+
+						end
+    Util_CreateEntityAtPositionEx( player, hqtemp2, hqBlueprint, pos, 1)
+            end
+end
+	
+Scar_AddInit(OnInit)
+Scar_AddInit(AddArmy_Builders)
+Scar_AddInit(sEntityHQ)
+Scar_AddInit(DestroyHQ)
+
+function restrictunitall()
+
+listrestrictChaos =
+{
+	"chaos_marine_squad_sp_dxp3_prisoner",
+	"chaos_marine_squad_stronghold_sp",
+	"chaos_noise_marine_squad",
+	"chaos_plague_marine_squad",
+	"chaos_rubric_marine_squad",
+	"chaos_squad_assaultpod",
+	"chaos_squad_baneblade",
+	"chaos_squad_bloodletters",
+	"chaos_squad_bloodthirster",
+	"chaos_squad_brass_scorpion",
+	"chaos_squad_cultist_advance_sp",
+	"chaos_squad_cultist_sp_dxp3_prisoner",
+	"chaos_squad_daemon_prince",
+	"chaos_squad_daemonettes",
+	"chaos_squad_deathwheel",
+	"chaos_squad_defiler",
+	"chaos_squad_dreadnought",
+	"chaos_squad_ds_turret",
+	"chaos_squad_guo",
+	"chaos_squad_heldrake",
+	"chaos_squad_hell_talon",
+	"chaos_squad_honor_guard",
+	"chaos_squad_horror",
+	"chaos_squad_horror_hg_dxp3",
+	"chaos_squad_horror_sp_dxp3_prisoner",
+	"chaos_squad_keeper_of_secrets",
+	"chaos_squad_khorne_berserker",
+	"chaos_squad_khorne_berserker_advance_sp",
+	"chaos_squad_khorne_berserker_sp_dxp3_prisoner",
+	"chaos_squad_khorne_berserker_sp_elites",
+	"chaos_squad_khorne_berserker_sp_msd02",
+	"chaos_squad_khorne_berserker_stronghold_sp",
+	"chaos_squad_landraider",
+	"chaos_squad_lord",
+	"chaos_squad_lord_advance_sp",
+	"chaos_squad_lord_of_change",
+	"chaos_squad_lord_undivided",
+	"chaos_squad_obliterator",
+	"chaos_squad_obliterator_advance_sp",
+	"chaos_squad_obliterator_stronghold_sp",
+	"chaos_squad_plague_bearers",
+	"chaos_squad_possessed_marine",
+	"chaos_squad_possessed_marine_advance_sp",
+	"chaos_squad_possessed_marine_stronghold_sp",
+	"chaos_squad_predator",
+	"chaos_squad_predator_advance_sp",
+	"chaos_squad_psyker",
+	"chaos_squad_raptor",
+	"chaos_squad_raptor_stronghold_sp",
+	"chaos_squad_reaver_titan",
+	"chaos_squad_renegades",
+	"chaos_squad_rhino",
+	"chaos_squad_screamers",
+	"chaos_squad_sorcerer",
+	"chaos_squad_sorcerer_advance_sp",
+	"chaos_squad_thunderhawk",
+	"chaos_squad_vindicator",
+	"chaos_squad_warhound_titan",
+	"chaos_terminator_khorne_squad",
+	"chaos_terminator_squad",
+	"chaos_havoc_marine_squad",
+	"chaos_marine_bike_squad",
+}
+
+listrestrictDarkEldar =
+{
+    "dark_eldar_squad_dais_of_destruction",
+	"dark_eldar_squad_fastrepair_sp_dxp3",
+	"dark_eldar_squad_haemonculus",
+	"dark_eldar_squad_hellion",
+	"dark_eldar_squad_hellion_leader_hg_dxp3",
+	"dark_eldar_squad_hellion_sp_dxp3",
+	"dark_eldar_squad_incubus",
+	"dark_eldar_squad_incubus_hg_dxp3",
+	"dark_eldar_squad_mandrake_hg_dxp3",
+	"dark_eldar_squad_raider",
+	"dark_eldar_squad_raider_sp_dxp3",
+	"dark_eldar_squad_rampage",
+	"dark_eldar_squad_ravager",
+	"dark_eldar_squad_raven",
+	"dark_eldar_squad_reaper",
+	"dark_eldar_squad_reaver",
+	"dark_eldar_squad_reaver_hg_dxp3",
+	"dark_eldar_squad_reaver_sp_dxp3_prisoner",
+	"dark_eldar_squad_scourge",
+	"dark_eldar_squad_scourge_hg_dxp3",
+	"dark_eldar_squad_scourge_sp_dxp3",
+	"dark_eldar_squad_shadow",
+	"dark_eldar_squad_soulstorm",
+	"dark_eldar_squad_soulstorm_cataclysm",
+	"dark_eldar_squad_talos",
+	"dark_eldar_squad_tormentor",
+	"dark_eldar_squad_warp_beast",
+	"dark_eldar_squad_warrior_leader_hg_dxp3",
+	"dark_eldar_squad_warrior_sp_dxp3_prisoner",
+	"dark_eldar_squad_wrack",
+	"dark_eldar_squad_wych",
+	"dark_eldar_squad_wych_leader_hg_dxp3",
+	"dark_eldar_squad_wych_sp_dxp3_prisoner",
+	"dark_eldar_squad_archon",
+	"dark_eldar_squad_archon_hg_dxp3",
+}
+listrestrictEldar =
+{
+	"eldar_harlequin_squad",
+	"eldar_squad_autarch",
+	"eldar_squad_avatar",
+	"eldar_squad_banshee_exarch_council",
+	"eldar_squad_banshees",
+	"eldar_squad_banshees_sp_dxp3_prisoner",
+	"eldar_squad_cobra",
+	"eldar_squad_corsairs",
+	"eldar_squad_dark_reaper_exarch_council",
+	"eldar_squad_dark_reapers",
+	"eldar_squad_dark_reapers_base",
+	"eldar_squad_dark_reapers_exarch_sp",
+	"eldar_squad_dark_reapers_sp_dxp3_prisoner",
+	"eldar_squad_ds_turret",
+	"eldar_squad_falcon_grav_tank",
+	"eldar_squad_falcon_grav_tank_advance_sp",
+	"eldar_squad_falcon_grav_tank_sp_dxp3",
+	"eldar_squad_farseer",
+	"eldar_squad_farseer_advance_sp",
+	"eldar_squad_fire_dragon",
+	"eldar_squad_fire_dragon_exarch_council",
+	"eldar_squad_fire_dragon_sp_dxp3_prisoner",
+	"eldar_squad_fire_prism",
+	"eldar_squad_grav_platform",
+	"eldar_squad_grav_platform_brightlance",
+	"eldar_squad_grav_platform_dcannon",
+	"eldar_squad_grav_platform_shadow_weaver",
+	"eldar_squad_grav_platform_vibrocannon",
+	"eldar_squad_jetbikes",
+	"eldar_squad_nightspinner",
+	"eldar_squad_nightwing",
+	"eldar_squad_nightwing_elite_sp_dxp3",
+	"eldar_squad_phoenix",
+	"eldar_squad_rangers",
+	"eldar_squad_rangers_advance_sp",
+	"eldar_squad_scorpion",
+	"eldar_squad_seer_council",
+	"eldar_squad_seer_council_advance_sp",
+	"eldar_squad_storm_serpent",
+	"eldar_squad_striking_scorpions",
+	"eldar_squad_titan_revenant",
+	"eldar_squad_unthraith_globalsuperweapon",
+	"eldar_squad_voidspinner",
+	"eldar_squad_vypers",
+	"eldar_squad_vypers_advance_sp",
+	"eldar_squad_vypers_sp_dxp3",
+	"eldar_squad_war_walker",
+	"eldar_squad_warp_spider",
+	"eldar_squad_warp_spider_exarch_council",
+	"eldar_squad_warp_spider_sp_dxp3",
+	"eldar_squad_warp_spider_stronghold_sp",
+	"eldar_squad_wave_serpent",
+	"eldar_squad_wraithguard",
+	"eldar_squad_wraithlord",
+	"eldar_squad_wraithlord_advance_sp",
+	"eldar_storm_guardian_squad",
+	"sp_eldar_banshee_exarch_squad",
+	"eldar_dire_avenger_squad",
+	"eldar_guardian_squad_sp_dxp3_prisoner",
+}
+listrestrictGuard =
+{
+"guard_heavy_weapons_team_squad",
+	"guard_heavy_weapons_team_squad_hg_dxp3",
+	"guard_squad_artillery_spotter_sp_dxp3",
+	"guard_squad_assassin",
+	"guard_squad_baneblade",
+	"guard_squad_basilisk",
+	"guard_squad_chimera",
+	"guard_squad_chimera_kronus",
+	"guard_squad_command_squad",
+	"guard_squad_command_squad_advance_sp",
+	"guard_squad_command_squad_colonel",
+	"guard_squad_command_squad_psykers",
+	"guard_squad_commissar",
+	"guard_squad_commissar_cadet",
+	"guard_squad_driver_sp_dxp3",
+	"guard_squad_ds_turret",
+	"guard_squad_enginseer_advance_sp",
+	"guard_squad_field_medic",
+	"guard_squad_griffon_mortar",
+	"guard_squad_guardsmen_advance_sp",
+	"guard_squad_guardsmen_conscript",
+	"guard_squad_guardsmen_sp_dxp3_prisoner",
+	"guard_squad_guardsmen_specialweapons",
+	"guard_squad_hellhound",
+	"guard_squad_hydra_aa_tank",
+	"guard_squad_kasrkin",
+	"guard_squad_kasrkin_advance_single_sp",
+	"guard_squad_kasrkin_advance_sp",
+	"guard_squad_kasrkin_sp_dxp3_prisoner",
+	"guard_squad_laser_destroyer",
+	"guard_squad_lemanruss",
+	"guard_squad_lemanruss_annihilator",
+	"guard_squad_lemanruss_conqueror",
+	"guard_squad_lemanruss_demolisher",
+	"guard_squad_lemanruss_eradicator",
+	"guard_squad_lemanruss_executioner",
+	"guard_squad_lemanruss_exterminator",
+	"guard_squad_lemanruss_inferno",
+	"guard_squad_lemanruss_murderer",
+	"guard_squad_lemanruss_punisher",
+	"guard_squad_lemanruss_vanquisher",
+	"guard_squad_lemanruss_vanquisher_command",
+	"guard_squad_marauder",
+	"guard_squad_master_vox",
+	"guard_squad_officer_squad",
+	"guard_squad_ogryns",
+	"guard_squad_ogryns_advance_sp",
+	"guard_squad_ogryns_sp_dxp3_prisoner",
+	"guard_squad_priest",
+	"guard_squad_psyker",
+	"guard_squad_reaver_titan",
+	"guard_squad_sentinel",
+	"guard_squad_sentinel_advance_sp",
+	"guard_squad_sentinel_hg_dxp3",
+	"guard_squad_shadowsword",
+	"guard_squad_sniper",
+	"guard_squad_stormblade",
+	"guard_squad_stormhammer",
+	"guard_squad_stormsword",
+	"guard_squad_stormtrooper",
+	"guard_squad_valkyrie_transport",
+	"guard_squad_vulture",
+	"guard_squad_warhound_titan",
+	"guard_heavy_weapon_team_entrenched_squad_hg_dxp3",
+	"guard_heavy_weapon_team_entrenched_squad_sp",
+	"guard_heavy_weapons_team_antitank_squad",
+	"guard_heavy_weapons_team_mortar_squad",
+}
+listrestrictNecron =
+{
+    "necron_builder_scarab_squad_advance_sp",
+	"necron_deathmark_squad",
+	"necron_deceiver_squad",
+	"necron_deceiver_squad_advance_sp",
+	"necron_deceiver_squad_illusion",
+	"necron_destroyer_squad",
+	"necron_doomsday_ark_squad",
+	"necron_doomsday_monolith_squad",
+	"necron_ds_turret_squad",
+	"necron_flayed_one_squad",
+	"necron_flayed_one_squad_advance_sp",
+	"necron_heavy_destroyer_squad",
+	"necron_immortal_squad",
+	"necron_immortal_squad_advance_sp",
+	"necron_immortal_squad_sp_dxp3_prisoner",
+	"necron_lord_destroyer_squad",
+	"necron_lord_destroyer_squad_illusion",
+	"necron_lord_squad",
+	"necron_lord_squad_advance_sp",
+	"necron_lord_squad_illusion",
+	"necron_night_bringer",
+	"necron_overlord_squad",
+	"necron_pariah_squad",
+	"necron_pariah_squad_advance_sp",
+	"necron_pariah_squad_sp_dxp3_prisoner",
+	"necron_pylon_squad",
+	"necron_restored_monolith_illusion_squad",
+	"necron_restored_monolith_squad",
+	"necron_tomb_spyder_squad",
+	"necron_tomb_spyder_squad_advance_sp",
+	"necron_tomb_stalker_squad",
+	"necron_wraith_squad",
+	"necron_aeonic_orb_squad",
+	"necron_basic_warrior_squad_advance_sp",
+	"necron_basic_warrior_squad_dxp3_sp",
+	"necron_basic_warrior_squad_sp_dxp3_prisoner",
+	"necron_builder_scarab_squad",
+}
+listrestrictORK = 
+{
+    "ork_squad_battle_wagon",
+	"ork_squad_battlefortress",
+	"ork_squad_bombsquigs",
+	"ork_squad_burna",
+	"ork_squad_deff_dread",
+	"ork_squad_fighta_bomba",
+	"ork_squad_grot_gang",
+	"ork_squad_grot_tank",
+	"ork_squad_gun_wagon",
+	"ork_squad_honor_guard_slugga",
+	"ork_squad_killa_kan",
+	"ork_squad_killa_kan_advance_sp",
+	"ork_squad_kommandoz",
+	"ork_squad_kustim_stompa",
+	"ork_squad_lootas",
+	"ork_squad_looted_tank",
+	"ork_squad_mek_boy",
+	"ork_squad_nob",
+	"ork_squad_nob_advance_sp",
+	"ork_squad_nob_sp_dxp3_prisoner",
+	"ork_squad_shoota_boy_advance_sp",
+	"ork_squad_shoota_boy_sp_dxp3_prisoner",
+	"ork_squad_slugga_advance_sp",
+	"ork_squad_slugga_sp_dxp3_prisoner",
+	"ork_squad_squiggoth",
+	"ork_squad_squiggoth_gargantaun",
+	"ork_squad_stormboy",
+	"ork_squad_stormboy_advance_sp",
+	"ork_squad_tankbusta",
+	"ork_squad_tankbusta_advance_sp",
+	"ork_squad_tankbusta_sp_dxp3_prisoner",
+	"ork_squad_trukk",
+	"ork_squad_warboss",
+	"ork_squad_warboss_advance_sp",
+	"ork_squad_wartrak",
+	"ork_squad_wartrak_advance_sp",
+	"ork_flash_gitz_squad",
+	"ork_squad_ard_boyz",
+	"ork_squad_armored_nob",
+	"ork_squad_armored_nob_advance_sp",
+	"ork_squad_bad_dok",
+}
+listrestrictSisters =
+{
+	"sisters_squad_battle_sister_sp_dxp3_prisoner",
+	"sisters_squad_canoness",
+	"sisters_squad_canoness_advance_sp",
+	"sisters_squad_celestian",
+	"sisters_squad_celestian_hg_dxp3",
+	"sisters_squad_celestian_sp_dxp3_prisoner",
+	"sisters_squad_confessor",
+	"sisters_squad_curia",
+	"sisters_squad_ds_turret",
+	"sisters_squad_exorcist_mk",
+	"sisters_squad_exorcist_tank",
+	"sisters_squad_immolator_tank",
+	"sisters_squad_legatine_superior",
+	"sisters_squad_lightning",
+	"sisters_squad_lightning_strike",
+	"sisters_squad_living_saint",
+	"sisters_squad_nunciate_superior",
+	"sisters_squad_penitent_engine",
+	"sisters_squad_penitent_engine_hg_dxp3",
+	"sisters_squad_repentia",
+	"sisters_squad_repentia_mistress_hg_dxp3",
+	"sisters_squad_repentia_sp_dxp3_prisoner",
+	"sisters_squad_retributor",
+	"sisters_squad_rhino",
+	"sisters_squad_rhino_sp_dxp3",
+	"sisters_squad_saint_cherub",
+	"sisters_squad_sentinel",
+	"sisters_squad_seraphim",
+	"sisters_squad_seraphim_hg_dxp3",
+	"sisters_squad_seraphim_sp_dxp3",
+	"sisters_squad_veteran_superior_hg_dxp3",
+	"sisters_squad_almoness",
+	"sisters_squad_arch_angel",
+	"sisters_squad_ascension_angel2",
+	"sisters_squad_assassin",
+	"sisters_squad_battle_sister_hg_dxp3",
+}
+listrestrictSpaceMarine = 
+{
+	"space_marine_squad_chaplain",
+	"space_marine_squad_chapter_master",
+	"space_marine_squad_damocles",
+	"space_marine_squad_devastator",
+	"space_marine_squad_dreadnought",
+	"space_marine_squad_dreadnought_advance_sp",
+	"space_marine_squad_dreadnought_dxp3_nis",
+	"space_marine_squad_dreadnought_hellfire",
+	"space_marine_squad_dreadnought_hellfire_advance_sp",
+	"space_marine_squad_dreadnought_hellfire_dxp3_nis",
+	"space_marine_squad_dreadnought_ironclad",
+	"space_marine_squad_dreadnought_venerable",
+	"space_marine_squad_ds_turret",
+	"space_marine_squad_force_commander",
+	"space_marine_squad_force_commander_advance_sp",
+	"space_marine_squad_force_commander_killeus",
+	"space_marine_squad_force_commander_terminator",
+	"space_marine_squad_grey_knights",
+	"space_marine_squad_grey_knights_hg_dxp3",
+	"space_marine_squad_grey_knights_sp_dxp3_prisoner",
+	"space_marine_squad_honor_guard_gladiator",
+	"space_marine_squad_land_raider",
+	"space_marine_squad_land_raider_crusader",
+	"space_marine_squad_land_raider_helios",
+	"space_marine_squad_land_raider_prometheus",
+	"space_marine_squad_land_raider_redeemer",
+	"space_marine_squad_land_speeder",
+	"space_marine_squad_librarian",
+	"space_marine_squad_lotd_tactical",
+	"space_marine_squad_predator",
+	"space_marine_squad_predator_advance_sp",
+	"space_marine_squad_predator_murderer",
+	"space_marine_squad_razorback",
+	"space_marine_squad_reaver_titan",
+	"space_marine_squad_rhino",
+	"space_marine_squad_scout_advance_sp",
+	"space_marine_squad_scout_sp_dxp3_prisoner",
+	"space_marine_squad_skull_probe",
+	"space_marine_squad_sp_dxp3_prisoner",
+	"space_marine_squad_sternguard_veteran",
+	"space_marine_squad_tactical_bike",
+	"space_marine_squad_tactical_dxp3_nis",
+	"space_marine_squad_techmarine",
+	"space_marine_squad_tempest",
+	"space_marine_squad_terminator",
+	"space_marine_squad_terminator_assault",
+	"space_marine_squad_terminator_assault_veteran_sp",
+	"space_marine_squad_terminator_assault_veteran_stronghold_sp",
+	"space_marine_squad_terminator_veteran_sp",
+	"space_marine_squad_terminator_veteran_sp_dxp3_prisoner",
+	"space_marine_squad_terminator_veteran_stronghold_sp",
+	"space_marine_squad_thunderhawk_uamod",
+	"space_marine_squad_vanguard_veteran",
+	"space_marine_squad_veteran_sp",
+	"space_marine_squad_veteran_stronghold_sp",
+	"space_marine_squad_vindicator",
+	"space_marine_squad_warhound_titan",
+	"space_marine_squad_whirlwind",
+	"space_marine_squad_apothecary",
+	"space_marine_squad_assault",
+	"space_marine_squad_assault_sp",
+	"space_marine_squad_assault_sp_dxp3",
+	"space_marine_squad_assault_veteran_sp",
+	"space_marine_squad_assault_veteran_stronghold_sp",
+	"space_marine_squad_banner_bearer",
+}
+listrestrictTau =
+{
+    "tau_commander_squad_advance_sp",
+	"tau_crisis_suit_squad",
+	"tau_crisis_suit_squad_sp_dxp3",
+	"tau_crisis_suit_squad_stronghold_sp",
+	"tau_devilfish_troop_carrier",
+	"tau_drone_harbinger_squad",
+	"tau_drone_remora_squad",
+	"tau_drone_turret_squad",
+	"tau_ethereal_squad",
+	"tau_greater_knarloc_squad",
+	"tau_hammerhead_gunship_armor_squad",
+	"tau_hammerhead_gunship_squad",
+	"tau_honor_guard_crisis_suit_squad_advance_honor_guard_sp",
+	"tau_honor_guard_crisis_suit_squad_advance_sp",
+	"tau_honor_guard_fire_warrior_squad_advance_sp",
+	"tau_honor_guard_fire_warrior_squad_sp_dxp3_prisoner",
+	"tau_honor_guard_fire_warrior_squad_stronghold_sp",
+	"tau_honor_guard_stealth_suit_squad_advance_sp",
+	"tau_kroot_alpha_squad_advance_sp",
+	"tau_kroot_alpha_squad_sp_dxp3_prisoner",
+	"tau_kroot_carnivore_squad",
+	"tau_kroot_hound_squad",
+	"tau_kroot_hound_squad_advance_sp",
+	"tau_kroot_hound_squad_sp_dxp3_prisoner",
+	"tau_kroot_knarloc_rider_squad",
+	"tau_kroot_shaper_squad",
+	"tau_krootox_squad",
+	"tau_malo_squad",
+	"tau_manta_squad",
+	"tau_orca_dropship_squad",
+	"tau_pathfinder_squad",
+	"tau_pathfinder_squad_advance_sp",
+	"tau_pathfinder_squad_sp_dxp3_prisoner",
+	"tau_piranha_squad",
+	"tau_shasui_fire_warrior_bodyguard_sp",
+	"tau_skyray_squad",
+	"tau_sniper_drone_squad",
+	"tau_stealth_team_squad_sp",
+	"tau_stealth_team_squad_sp_dxp3",
+	"tau_stealth_team_xv25_squad",
+	"tau_swordfish_squad",
+	"tau_tetra_squad",
+	"tau_vespid_auxiliary_squad",
+	"tau_vespid_auxiliary_squad_sp",
+	"tau_vespid_auxiliary_squad_sp_dxp3",
+	"tau_vespid_elder_squad_advance_sp",
+	"tau_xv9_hazard_suit_squad",
+	"tau_xv81_crisis_suit_squad",
+	"tau_xv89_commander_squad",
+	"tau_xv202_mako_titan_squad",
+	"tau_xv202_mako_titan_squad_clone_sp",
+	"tau_barracuda_squad",
+	"tau_broadside_battlesuit_squad",
+	"tau_broadside_battlesuit_xv8_squad",
+	"tau_builder_squad",
+	"tau_commander_squad",
+}
+listrestrictDeamon =
+{
+		"daemon_squad_fury",
+		"daemon_squad_guo",
+		"daemon_squad_hell_spawn",
+		"daemon_squad_horblu",
+		"daemon_squad_horror",
+		"daemon_squad_keeper_of_secrets",
+		"daemon_squad_lord",
+		"daemon_squad_lord_of_change",
+		"daemon_squad_mutilator",
+		"daemon_squad_obliterator",
+		"daemon_squad_plague_bearers",
+		"daemon_squad_screamers",
+		"daemon_squad_soul_grinder",
+		"daemon_squad_trade_requisition3",
+		"daemon_squad_bloodletters",
+		"daemon_squad_bloodthirster",
+		"daemon_squad_daemonettes",
+}
+listrestrictInquisition =
+{
+        "inquisition_squad_dreadnought_assault",
+		"inquisition_squad_dreadnought_support",
+		"inquisition_squad_dreadnought_venerable",
+		"inquisition_squad_grey_knight_champion",
+		"inquisition_squad_grey_knight_hero",
+		"inquisition_squad_grey_knights_assault",
+		"inquisition_squad_grey_knights_terminator",
+		"inquisition_squad_land_raider",
+		"inquisition_squad_land_raider_crusader",
+		"inquisition_squad_reaver_titan",
+		"inquisition_squad_rhino",
+		"inquisition_squad_servitor_maintenance",
+		"inquisition_squad_servitor_weapons",
+		"inquisition_squad_shock_troops",
+		"inquisition_squad_valkyrie_uamod",
+		"inquisition_squad_warhound_titan",
+		"inquisition_squad_bodyguard",
+		"inquisition_squad_chimera_transport",
+		"inquisition_squad_death_cultist",
+		"inquisition_squad_dreadnought",
+}
+listrestrictTyranids =
+{
+        "tyranids_squad_genestealer",
+		"tyranids_squad_genestealer_max",
+		"tyranids_squad_hierophant",
+		"tyranids_squad_hive_tyrant",
+		"tyranids_squad_hormagaunt_max",
+		"tyranids_squad_lictor",
+		"tyranids_squad_ravener",
+		"tyranids_squad_spinegaunt_max",
+		"tyranids_squad_spore_cluster",
+		"tyranids_squad_termagant_max",
+		"tyranids_squad_trygon",
+		"tyranids_squad_warrior",
+		"tyranids_squad_woth",
+		"tyranids_squad_zoanthropes",
+		"tyranids_squad_biovores",
+		"tyranids_squad_broodlord",
+		"tyranids_squad_carnifex",
+		"tyranids_squad_carnifex_khazi",
+		"tyranids_squad_carnifex_skiller",
+		"tyranids_squad_carnifex_uber",
+		"tyranids_squad_gargoyle",
+		"tyranids_squad_gaunt_won",
+}
+
+if sPlayer1Race == "chaos_marine_race" then 
+restrictengineer1= "chaos_squad_slave"
+listrestrictplayer1=listrestrictChaos
+destroyhq1=	"chaos_hq"
+elseif sPlayer1Race == "dark_eldar_race" then 
+restrictengineer1= "dark_eldar_squad_slave"
+listrestrictplayer1=listrestrictDarkEldar
+destroyhq1=	"dark_eldar_hq"
+elseif sPlayer1Race == "eldar_race" then 
+restrictengineer1= "eldar_squad_bonesinger"
+listrestrictplayer1=listrestrictEldar
+destroyhq1= "eldar_hq"
+elseif sPlayer1Race == "guard_race" then 
+restrictengineer1= "guard_squad_enginseer"
+listrestrictplayer1=listrestrictGuard
+destroyhq1=	"guard_hq"
+elseif sPlayer1Race == "necron_race" then 
+restrictengineer1= "necron_builder_scarab_squad"
+listrestrictplayer1=listrestrictNecron
+destroyhq1= "necron_hq"
+elseif sPlayer1Race == "ork_race" then 
+restrictengineer1= "cf_ork_squad_grot"
+listrestrictplayer1=listrestrictORK
+destroyhq1= "ork_hq"
+elseif sPlayer1Race == "sisters_race" then 
+restrictengineer1= "sisters_squad_servitor"
+listrestrictplayer1=listrestrictSisters
+destroyhq1=	"sisters_hq"
+elseif sPlayer1Race == "space_marine_race" then 
+restrictengineer1= "cf_space_marine_squad_servitor"
+listrestrictplayer1=listrestrictSpaceMarine 
+destroyhq1=	"space_marine_hq"
+elseif sPlayer1Race == "tau_race" then 
+restrictengineer1= "tau_builder_squad"
+listrestrictplayer1=listrestrictTau
+destroyhq1=	"tau_hq"
+elseif sPlayer1Race == "deamons_race" then 
+restrictengineer1= "daemon_squad_lost_soul"
+listrestrictplayer1=listrestrictDeamon
+destroyhq1=	"daemon_hq"
+elseif sPlayer1Race == "inquisition_daemonhunt_race" then 
+restrictengineer1= "inquisition_squad_archivist"
+listrestrictplayer1=listrestrictInquisition
+destroyhq1=	"inquisition_tower_hq"
+elseif sPlayer1Race == "tyranids_race" then 
+restrictengineer1= "tyranids_squad_ripperswarm"
+listrestrictplayer1=listrestrictTyranids
+destroyhq1=	"tyranids_hq"
+end
+
+if sPlayer2Race == "chaos_marine_race" then 
+restrictengineer2= "chaos_squad_slave"
+listrestrictplayer2=listrestrictChaos
+destroyhq2=	"chaos_hq"
+elseif sPlayer2Race == "dark_eldar_race" then 
+restrictengineer2= "dark_eldar_squad_slave"
+listrestrictplayer2=listrestrictDarkEldar
+destroyhq2=	"dark_eldar_hq"
+elseif sPlayer2Race == "eldar_race" then 
+restrictengineer2= "eldar_squad_bonesinger"
+listrestrictplayer2=listrestrictEldar
+destroyhq2=	"eldar_hq"
+elseif sPlayer2Race == "guard_race" then 
+restrictengineer2= "guard_squad_enginseer"
+listrestrictplayer2=listrestrictGuard
+destroyhq2=	"guard_hq"
+elseif sPlayer2Race == "necron_race" then 
+restrictengineer2= "necron_builder_scarab_squad"
+listrestrictplayer2=listrestrictNecron
+destroyhq2=	"necron_hq"
+elseif sPlayer2Race == "ork_race" then 
+restrictengineer2= "ork_squad_grot"
+listrestrictplayer2=listrestrictORK
+destroyhq2=	"ork_hq"
+elseif sPlayer2Race == "sisters_race" then 
+restrictengineer2= "sisters_squad_servitor"
+listrestrictplayer2=listrestrictSisters
+destroyhq2=	"sisters_hq"
+elseif sPlayer2Race == "space_marine_race" then 
+restrictengineer2= "cf_space_marine_squad_servitor"
+listrestrictplayer2=listrestrictSpaceMarine 
+destroyhq2=	"space_marine_hq"
+elseif sPlayer2Race == "tau_race" then 
+restrictengineer2= "tau_builder_squad"
+listrestrictplayer2=listrestrictTau
+destroyhq2=	"tau_hq"
+elseif sPlayer2Race == "deamons_race" then 
+restrictengineer2= "daemon_squad_lost_soul"
+listrestrictplayer2=listrestrictDeamon
+destroyhq2=	"daemon_hq"
+elseif sPlayer2Race == "inquisition_daemonhunt_race" then 
+restrictengineer2= "inquisition_squad_archivist"
+listrestrictplayer2=listrestrictInquisition
+destroyhq2=	"inquisition_tower_hq"
+elseif sPlayer2Race == "tyranids_race" then 
+restrictengineer2= "tyranids_squad_ripperswarm"
+listrestrictplayer2=listrestrictTyranids
+destroyhq2=	"tyranids_hq"
+end
+
+
+--Player_RestrictSquadList( ePlayer1ID, listrestrictplayer1 )
+--Player_RestrictSquadList( ePlayer2ID, listrestrictplayer2 )
+
+end
+
+function UnRestrictAll()
+Player_UnRestrictSquadList( ePlayer1ID, listrestrictplayer1 )
+Player_UnRestrictSquadList( ePlayer2ID, listrestrictplayer2 )
+end
+
+function Player_UnRestrictSquadList( playerID, list )
+	for i=1,table.getn(list) do
+		Player_UnRestrictSquad( playerID, list[i] )
+	end
+end
+
+function UnRestrictCustomStructure()
+	local count = World_GetPlayerCount();
+	for i = 0, count-1
+	do
+		
+		local player = World_GetPlayerAt(i);
+			
+		if (Player_GetRaceName(player) == "chaos_marine_race") then
+			tempbuild1 = listrestrictChaosBuild
+
+		elseif (Player_GetRaceName(player) == "dark_eldar_race") then
+			tempbuild1 = listrestrictDarkEldarBuild
+			
+		elseif (Player_GetRaceName(player) == "eldar_race") then
+			tempbuild1 = listrestrictEldarBuild
+		
+		elseif (Player_GetRaceName(player) == "guard_race") then
+			tempbuild1 = listrestrictGuardBuild
+		
+		elseif (Player_GetRaceName(player) == "necron_race") then
+			tempbuild1 = listrestrictNecronBuild
+		
+		elseif (Player_GetRaceName(player) == "ork_race") then
+			tempbuild1 = listrestrictORKBuild
+			
+		elseif (Player_GetRaceName(player) == "sisters_race") then			
+			tempbuild1 = listrestrictSistersBuild
+		
+		elseif (Player_GetRaceName(player) == "space_marine_race") then
+			tempbuild1 = listrestrictSpaceMarineBuild
+			
+		elseif (Player_GetRaceName(player) == "tau_race") then
+			tempbuild1 = listrestrictTauBuild
+			
+		elseif (Player_GetRaceName(player) == "deamons_race") then
+			tempbuild1 = listrestrictDeamonBuild
+			
+		elseif (Player_GetRaceName(player) == "inquisition_daemonhunt_race") then
+			tempbuild1 = listrestrictInquisitionBuild
+			
+		elseif (Player_GetRaceName(player) == "tyranids_race") then
+			tempbuild1 = listrestrictTyranidsBuild
+		end
+		
+		for i=1,table.getn( tempbuild1 ) do
+			local structure = tempbuild1[i];
+		
+			Player_UnRestrictBuilding(player, structure);
+		end 
+		for i=1,table.getn( listrestrictAllStructure ) do
+			local structure = listrestrictAllStructure[i];
+		
+			Player_RestrictBuilding(player, structure);
+		end 
+	end
+end
+
+function Timer()
+
+	timer = timer + 1
+	
+end
+
+function Transfer1 ()
+
+    SGroup_CreateIfNotFound(tempengineer1)
+    SGroup_AddGroup( tempengineer1, Player_GetSquads( ePlayer1ID ) )
+    SGroup_CreateIfNotFound(unitattack1)
+    rEngineer ( tempengineer1, unitattack1, restrictengineer1 )
+
+    SGroup_SetPlayerOwner ( unitattack1, ePlayer3ID ) 
+    SGroup_CreateIfNotFound(unitattack2)
+    SGroup_AddGroup( unitattack2, Player_GetSquads( ePlayer3ID ) )
+    Cmd_AttackMoveMarker ( unitattack2, "Attack2" )
+
+end
+
+function Transfer2 ()
+
+	SGroup_CreateIfNotFound(tempengineer2)
+    SGroup_AddGroup( tempengineer2, Player_GetSquads( ePlayer2ID ) )
+    SGroup_CreateIfNotFound(unitattack3)
+    rEngineer ( tempengineer2, unitattack3, restrictengineer2 )
+	
+	SGroup_SetPlayerOwner ( unitattack3, ePlayer4ID )
+	SGroup_CreateIfNotFound(unitattack4)
+	SGroup_AddGroup( unitattack4, Player_GetSquads( ePlayer4ID ) )
+	Cmd_AttackMoveMarker ( unitattack4, "Attack1" )
+	
+end
+
+function rEngineer (srcGroupName, destGroupName, bpname )
+    srcID = SGroup_FromName( srcGroupName )
+    destID = SGroup_CreateIfNotFound( destGroupName )
+
+    local CheckBP = function( groupid, itemindex, itemid )
+        local base, attached = SGroupCaller.GetItemBlueprint( itemid )
+        if( base ~= bpname ) then
+            SGroup_Add( destID, itemid )
+        end
+    end
+
+    SGroup_ForEach( srcID, CheckBP )
+
+end
+
+function rEntity ( player, blueprintname )
+
+	local Blueprints = function(groupCaller, groupID)
+		local Destroyer = function(groupID, itemIndex, itemID)
+			if (groupCaller.GetItemBlueprint(itemID) == blueprintname) then
+				Entity_Destroy(itemID)
+			end
+			return true
+		end
+		
+		groupCaller.ForEachAllOrAny(groupID, true, Destroyer)
+	end
+	
+	if( EBP_Exists( blueprintname ) ) then
+		return Blueprints( EGroupCaller, Player_GetEntities( player ) )
+	elseif( SBP_Exists( blueprintname ) ) then
+		return Blueprints( SGroupCaller, Player_GetSquads( player ) )
+	end
+end
