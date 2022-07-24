@@ -82,8 +82,8 @@ function OnInit()
 	}
 	
 	--FOW_RevealAll()
-	--Player_SetAllResources(ePlayer1ID, 250, 25)
-	--Player_SetAllResources(ePlayer2ID, 250, 25)
+	Player_SetAllResources(ePlayer1ID, 2000, 1000)
+	Player_SetAllResources(ePlayer2ID, 2000, 1000)
 
 	Cpu_Enable(ePlayer3ID, false)
 	Cpu_Enable(ePlayer4ID, false)
