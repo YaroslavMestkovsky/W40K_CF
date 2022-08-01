@@ -1,5 +1,20 @@
 t_entity_list = 
-{
+{   -- CF Buildings --
+	------------------
+	------------------
+	"cf_space_marine_barracks",
+	"cf_space_marine_hq",
+	"cf_space_marine_vehicle_building",
+    -- CF Troops --
+	---------------
+	---------------
+    "cf_assault_marine",
+	"cf_dreadnought",
+	"cf_servitor",
+	"cf_space_marine_devastator",
+	"cf_space_marine_tactical_bolter",
+	"cf_space_marine_tactical_missle",
+	"cf_space_marine_tactical_plasma",
 	-- Buildings --
 	---------------
 	---------------
