@@ -48,6 +48,9 @@ listrestrictSpaceMarineBuild =
  "cf_space_marine_barracks",
  "cf_space_marine_vehicle_building",
  "cf_space_marine_hq",
+ "cf_space_marine_generator",
+ "cf_space_marine_listening_post",
+ "cf_space_marine_mine_field",
 }
 listrestrictTauBuild =
 {
@@ -155,6 +158,7 @@ listrestrictAllStructure =
 	"space_marine_turret_missile_sp",
 	"space_marine_vehicle_building",
 	"space_marine_ability_building",
+	"space_marine_mine_field",
 	"tau_hq",
 	"tau_kroot_nest",
 	"tau_listening_post",

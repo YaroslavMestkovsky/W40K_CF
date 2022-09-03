@@ -5,6 +5,9 @@ t_entity_list =
 	"cf_space_marine_barracks",
 	"cf_space_marine_hq",
 	"cf_space_marine_vehicle_building",
+	"cf_space_marine_generator",
+	"cf_space_marine_listening_post",
+	"cf_space_marine_mine_field",
     -- CF Troops --
 	---------------
 	---------------
