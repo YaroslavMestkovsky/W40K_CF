@@ -3,8 +3,12 @@
 -- Edited by Larkin @ 19.08.2005
 -- Edited by Flenser@ 08.07.2005
 -- Edited by Dark40k@ 14.10.2008
+-- Edited by Aliaska_RuS
 
 class 'BuildOrderStrategy' (Strategy)
+
+BuildOrderStrategy.mid_capture_flag = {}
+BuildOrderStrategy.mid_capture_flag_random = math.random(1,3)
 
 function BuildOrderStrategy:__init( info ) super( info )
 
@@ -99,9 +103,9 @@ function BuildOrderStrategy:WaitOnNextPlan()
 		-- there is no point trying to capture empty strat points that are nearer the enemy base than the
 		-- AI's base, but some strat points may be just on the boundary. Tolerance sets just how much past
 		-- the exact midpoint a strat point can be and still be suitable
-		local tolerance = 20
+		local tolerance = 30
 		if map_size == "small" then
-			local tolerance = 10
+			local tolerance = 15
 		end
       local mid_pos = Vector3f()
       local base_pos = cpu_manager.start_pos
@@ -117,11 +121,11 @@ function BuildOrderStrategy:WaitOnNextPlan()
 		--between the AI and its enemy
       local fail = 0
     	aitrace("flip flag: "..self.capture_flag)
-		if map_size == "small" and self.capture_flag == 0 then
+		if map_size == "small" or "medium" then
 			for strat_ai in resource_manager:GetUnlockedStrategicPointAIs() do
 				if not strat_ai:IsStrategicObjective() then
 					if not cpu_manager:IsFriendly( strat_ai:Owner() ) and 
-						not strat_ai:HasListeningPost() and
+						not strat_ai:HasListeningPost() and not strat_ai:IsRelic() and
 						not strat_ai:IsBeingCaptured() and
 						not cpu_manager:HasThreatOnPath( base_pos, strat_ai:GetEntity():GetPosition(), 40 ) then
 						if not cpu_manager.terrain_analyzer:HasThreat( strat_ai:GetEntity():GetPosition(), 40 ) and 
@@ -175,7 +179,8 @@ function BuildOrderStrategy:WaitOnNextPlan()
             aitrace("Chosen Strategic Point position "..strategic_flag_pos.x.."; "..strategic_flag_pos.y.."; "..strategic_flag_pos.z)
             aitrace("Distance from mid point to strat point "..string.format( "%.2f", differences [1] [2]))
 				aitrace("Starting Capture Plan for the midway strategic point")
-            plan = CapturePlan( strategic_flag_pos, true )
+            plan = CapturePlan( strategic_flag_pos , true)
+            table.insert( BuildOrderStrategy.mid_capture_flag, strategic_flag )
             table.insert( self.is_capturing_pos, strategic_flag_pos )
 			end
          self.capture_flag = self.capture_flag + 1
@@ -192,10 +197,42 @@ function BuildOrderStrategy:WaitOnNextPlan()
 		plan = ResourcePlan( true )
 		
 	elseif current_build_order[1] == "building" then
-	
+               local start = cpu_manager.start_pos
+--[[               local bias = nil
+	       local base_pos = Vector3f(start)
+			local oStrategicPoint = resource_manager:FindFirstStrategicPoint(base_pos, 50)
+			if (oStrategicPoint ~= nil) then
+				bias = oStrategicPoint:GetPosition()
+			end
+
+             if (current_build_order[3] == Front1) and (bias ~= nil) then
+           	-- Local copy to tweak with bias
+           	local bias_pos = Vector3f()
+		bias_pos.x = start.x + cpu_manager:GetBias(start.x, bias.x)
+		bias_pos.y = start.y + cpu_manager:GetBias(start.y, bias.y)
+		bias_pos.z = start.z + cpu_manager:GetBias(start.z, bias.z)
+		bias = base_pos
+                local bestPosition = Vector3f()
+                local id = cpu_manager.stats:GetBuildingID( current_build_order[2] )
+                       if not cpu_manager.terrain_analyzer:FindClosestFreePosition(id, bias_pos, start, bestPosition) then
+                       	-- Get closest enemy position
+                       	local oEnemy = cpu_manager:FindClosestEnemyPlayer()
+                       	local vEnemyPos = Vector3f(0,0,0)
+                       	if (oEnemy ~= nil) then
+                       		vEnemyPos = Vector3f(oEnemy:GetStartingPosition())
+                       	end
+		        bias = vEnemyPos
+			if (not cpu_manager.terrain_analyzer:FindClosestFreePosition(id, start, bias, bestPosition)) then
+				return
+			end
+                       end
+		
+		plan = BuildBuildingPlan( id, bestPosition, true )
+              else]]
 		local id = cpu_manager.stats:GetBuildingID( current_build_order[2] )
-		plan = BuildBuildingPlan( id, cpu_manager.start_pos, true )
-	
+		plan = BuildBuildingPlan( id, start, true, Front1 )
+--              end
+
 	elseif current_build_order[1] == "research" then
 	
 		local id = cpu_manager.stats:GetResearchID( current_build_order[2] )
@@ -236,9 +273,9 @@ function BuildOrderStrategy:Update()
 		self:PostEvent( Strategy.Events.OnSuccess )
 		return
 	end
-	
+
 	-- Finish buildings
-	self:FinishBuildings()
+--	self:FinishBuildings()
 
 	-- Superclass
 	Strategy.Update(self)

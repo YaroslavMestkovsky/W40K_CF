@@ -1,5 +1,5 @@
 ----------------------------------------
--- File: 'utility.ai' (for SoulStorm)
+-- File: 'utility.ai' (for DarkCrusade)
 -- Edited by Thudmeizer @ 31.10.2007
 -- Edited by LarkinVB   @ 25.04.2005
 -- Edited by Arkhan     @ 06.01.2006
@@ -10,25 +10,21 @@ VALUE_LOCK_BUILD		= -200000
 -- above this should never be built
 VALUE_TOO_MANY_REQS		= -150000
 VALUE_NO_BUILD			= -100000
-VALUE_CAP				= -50000
+VALUE_CAP			= -50000
 VALUE_RESOURCE_RATE		= -25000
 VALUE_BUILD_TIME		= -10000
-VALUE_NO_ATTACH			= -5000
+
+VALUE_PER_TIER			= -200
+
 
 VALUE_PROMOTE_BUILD		= 200000
-INT_MAX					= 100000
-
-DOW_VERSION= "DoW"
---HEROE WARGEAR
-HeroeWargearNameIndex = 1
-HeroeWargearReqIndex = 2
-HeroeWargearPowIndex = 3
+INT_MAX				= 100000
 
 stack_trace_num = 0
 tracing = {}
 
--- ATTENTION : these have to be set to false for release, otherwise there will be lag !!!
 g_bAITrace = false
+
 g_bDebugMode = false
 
 function aitrace( msg, bAILog, bReset )
@@ -48,7 +44,7 @@ function aitrace( msg, bAILog, bReset )
 		local txt = timestr.." "..msg
 		
 		if (g_bAITrace) then
-			local log = io.open("Ai_Extended"..tostring(player_id)..".log", "a+")
+			local log = io.open("c:\\"..tostring(player_id).."aitrace.txt", "a+")
 			if (log) then
 				log:write("AI"..tostring(player_id), " ", txt, "\n")
 				log:close()
@@ -71,29 +67,6 @@ function aitrace( msg, bAILog, bReset )
 	end
 end
 
-function aitraceinit( msg )
-
-	if g_bAITrace then
-	
-		for i = 0, stack_trace_num-1 do
-			msg = ("   "..msg)
-		end
-	
-		table.insert(tracing, msg)
-		
-	    local gmt = cpu_manager.cpu_player:GetGameTime() / 8
-	    local mint = math.floor( gmt / 60 )
-	    local sec = math.mod( gmt, 60 )
-	    local timestr = string.format("%02.0f",mint)..":"..string.format("%02.0f",sec)
-		local txt = timestr.." "..msg		
-		local log = io.open("Ai_Extended"..tostring(player_id)..".log", "w+")
-		if (log) then
-			log:write("AI"..tostring(player_id), " ", txt, "\n")
-			log:close()
-		end
-	end
-end
-
 function aipushtrace( name, bAILog, bReset )
 
 	aitrace( name, bAILog, bReset )
@@ -112,7 +85,7 @@ function dbAssert( b )
 		local line = debug_info.currentline
 		local name = debug_info.name
 
-		local msg = "Assertion failed at "..source..", line "..line..",name"..name
+		local msg = "Assertion failed at "..source..", line "..line
 
 		aitrace(msg)
 		--aitimelog( "d:\\assert.log", msg)
@@ -156,38 +129,6 @@ function foreach_bind( tbl, func, ... )
 
 end
 
---KaiserSoze
---Counts the number of item that doesn't return nil
-function foreach_bindCount( tbl, func, ... )
-
-	local ret_val = nil
-	local answer=0
-	
-	local arg_count = arg.n
-	for i in tbl do
-		if( arg_count == 0) then
-			ret_val = func( tbl[i] )
-		elseif( arg_count == 1) then
-			ret_val = func( arg[1], tbl[i] )
-		elseif( arg_count == 2) then
-			ret_val = func( arg[1], arg[2], tbl[i] )
-		elseif( arg_count == 3) then
-			ret_val = func( arg[1], arg[2], arg[3], tbl[i] )
-		elseif( arg_count == 4) then
-			ret_val = func( arg[1], arg[2], arg[3], arg[4], tbl[i] )
-		end
-		
-		if( ret_val ~= nil ) then
-			answer = answer+1
-			ret_val= nil
-		end
-	end
-	
-	return answer
-
-end
-
-
 function distance( vec1, vec2 )
 	return (vec1 - vec2):Length()
 end
@@ -219,7 +160,7 @@ function profile_start( name )
     if g_profile then
 	   aiprofile_start( cpu_manager.cpu_player, name )
 	elseif a_profile then
-	   aitimelog("f:\\logs\\trace.log", "START "..name )  
+	   aitimelog("d:\\trace.log", "START "..name )  
 	end
 
 end
@@ -229,7 +170,7 @@ function profile_end(name)
 	if g_profile then
 		aiprofile_end( cpu_manager.cpu_player, name )
 	elseif a_profile then
-	   aitimelog("f:\\logs\\trace.log", "END "..name )  
+	   aitimelog("d:\\trace.log", "END "..name )  
 	end
 
 end
@@ -289,7 +230,7 @@ function aitimelog( logfile, msg )
    local mint = math.floor( gmt / 60 )
    local sec = math.mod( gmt, 60 )
    local timestr = string.format("%02.0f",mint)..":"..string.format("%02.0f",sec)
-   if log~=nil then
+   
    if player_id == nil then 
 	  log:write("AI"," ", timestr, tostring(msg) , "\n") 
    else 
@@ -297,7 +238,7 @@ function aitimelog( logfile, msg )
    end 
 
   log:close() 
-   end
+
 end
 
 function dlg( fl, msg )
@@ -318,13 +259,15 @@ function clg( pos1, pos2 )
    end
 
    --only log single AI
-   if cpu_manager.player_id ~= iCurrentPlayer then
-	  return
+   if cpu_manager.player_id ~= 1001 then
+	  --return
    end
 
    dcircle( pos1, 20, "yellow", nil, false )
    dcircle( pos2, 20, "green", nil, false )
 end
+
+
 
 function blg( squad, msg )
 
@@ -333,12 +276,12 @@ function blg( squad, msg )
    end
       
    if squad == nil then
-	  aitimelog( "d:\\logs\\prereq"..player_id..".txt", msg )
+	  aitimelog( "d:\\logs\\prereq"..player_id..".log", msg )
 	  return
    end
 
    --only log single AI
-   if true or cpu_manager.player_id ~= iCurrentPlayer then
+   if cpu_manager.player_id ~= 1001 then
 	  return
    end
       
@@ -347,17 +290,17 @@ function blg( squad, msg )
 
    if is_eng and 
 	  ( tactic:IsAttacker() or tactic:IsDefender() ) then
-	  aitimelog( "d:\\logs\\build"..player_id..".txt", "ATTACKER/DEFENDER" )
+	  aitimelog( "d:\\logs\\build"..player_id..".log", "ATTACKER/DEFENDER" )
    end
 
    if is_eng and squad:IsInStateAttackMove() then
-      aitimelog( "d:\\logs\\build"..player_id..".txt", "ATTACKE MOVE" )
+      aitimelog( "d:\\logs\\build"..player_id..".log", "ATTACKE MOVE" )
    end
       
    if is_eng then  
-	  aitimelog( "d:\\logs\\build"..player_id..".txt", msg )
+	  aitimelog( "d:\\logs\\build"..player_id..".log", msg )
    else
-	  aitimelog( "d:\\logs\\squad"..player_id..".txt", msg )
+	  aitimelog( "d:\\logs\\squad"..player_id..".log", msg )
 	end
 
 end
@@ -369,7 +312,7 @@ function dcircle( pos, radius, color, text, clear )
    dbAssert( radius ~= nil )
 
    --only display single AI
-   if cpu_manager.player_id ~= iCurrentPlayer then
+   if cpu_manager.player_id ~= 1004 then
 	  return
    end
 
@@ -409,16 +352,12 @@ function dcircle( pos, radius, color, text, clear )
    end
 end
 
-function GenerateUnitEffectiveness( light_low, light_med, light_high, heavy_med, heavy_high, vehicle_low, vehicle_med, vehicle_high, monster_med, monster_high,	commander, build_low, build_med, build_high, air_low, air_med, air_high)
+function GenerateUnitEffectiveness( light_low, light_med, light_high, heavy_med, heavy_high, vehicle_low, vehicle_med, vehicle_high, monster_med, monster_high,	commander, build_low, build_med, build_high) --, air_low, air_med, air_high)
 
 
 	build_low = build_low or 0 -- returns larger number
 	build_med = build_low or 0 -- returns larger number
 	build_high = build_high or 0 -- returns larger number
-
-	air_low = air_low or 0 -- returns larger number
-	air_med = air_med or 0 -- returns larger number
-	air_high = air_high or 0 -- returns larger number
 
 	effectiveness = {}
 	
@@ -436,9 +375,9 @@ function GenerateUnitEffectiveness( light_low, light_med, light_high, heavy_med,
 	effectiveness[ UnitStatsAI.UC_BuildingLow ] 		= build_low
 	effectiveness[ UnitStatsAI.UC_BuildingMed ] 		= build_med
 	effectiveness[ UnitStatsAI.UC_BuildingHigh ] 		= build_high
-	effectiveness[ UnitStatsAI.UC_AirLow ]		 	= air_low
+    --[[effectiveness[ UnitStatsAI.UC_AirLow ]		        = air_low
 	effectiveness[ UnitStatsAI.UC_AirMed ] 			= air_med
-	effectiveness[ UnitStatsAI.UC_AirHigh ] 		= air_high
+	effectiveness[ UnitStatsAI.UC_AirHigh ] 		= air_high]]
 
 	return effectiveness
 end

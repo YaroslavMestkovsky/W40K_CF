@@ -128,7 +128,7 @@ function MarineBuildBaseStrategy:GetBuildingName( sType )
 
 	-- Return race specific object string
 	if (sType == "HQ") then
-		return "space_marine_hq"
+		return "cf_space_marine_hq"
 
 	elseif (sType == "Generator") then
 		return "space_marine_generator"
@@ -163,11 +163,9 @@ function MarineBuildBaseStrategy:GetAddonBuilding( sType )
 	elseif (sType == "space_marine_list_post_addon_2") then
 		return "space_marine_listening_post"
 		
-	elseif (sType == "space_marine_hq_addon_1") then
-		return "space_marine_hq"
+	elseif (sType == "cf_space_marine_hq_addon_1") then
+		return "cf_space_marine_hq"
 		
-	elseif (sType == "space_marine_hq_addon_2") then
-		return "space_marine_hq"
 	end
 	return nil
 end
@@ -176,9 +174,7 @@ end
 function MarineBuildBaseStrategy:IsTierAddon( sName, iTargetTier )
 
 	-- Check addon name and target tier
-	if (sName == "space_marine_hq_addon_1" and iTargetTier == 2) then
-		return true
-	elseif (sName == "space_marine_hq_addon_2" and iTargetTier == 3) then
+	if (sName == "cf_space_marine_hq_addon_1" and iTargetTier == 2) then
 		return true
 	end
 	return false
@@ -223,8 +219,8 @@ function MarineBuildBaseStrategy:UpdateTierLevel()
 	self.tierLevel = 1
 	
 	-- Prepare
-	local iHQAddon1ID = cpu_manager.stats:GetAddOnID("space_marine_hq_addon_1")
-	local iHQAddon2ID = cpu_manager.stats:GetAddOnID("space_marine_hq_addon_2")
+	local iHQAddon1ID = cpu_manager.stats:GetAddOnID("cf_space_marine_hq_addon_1")
+--	local iHQAddon2ID = cpu_manager.stats:GetAddOnID("cf_space_marine_hq_addon_2")
 	local oStats = cpu_manager.stats:GetPlayerStatsFromID( cpu_manager.player_id )
 	
 	-- Check HQ's for addons
@@ -234,7 +230,7 @@ function MarineBuildBaseStrategy:UpdateTierLevel()
 		if (oBase:IsValid() and not oBase:IsListeningPost()) then
 
 			-- Check for HQ addon 2
-			if (oBase:HasAddOn(iHQAddon2ID)) then
+--[[			if (oBase:HasAddOn(iHQAddon2ID)) then
 			
 				-- We still have the proper add-on
 				if (cpu_manager.cpu_player:IsResearchComplete("marine_heavy_armor_deployment")) then
@@ -243,192 +239,180 @@ function MarineBuildBaseStrategy:UpdateTierLevel()
 				else
 					self.tierLevel = 3
 					return
-				end
+				end]]
 			
 			-- Check for HQ addon 1
-			elseif (oBase:HasAddOn(iHQAddon1ID)) then
+			--else
+			if (oBase:HasAddOn(iHQAddon1ID)) then
 				self.tierLevel = 2
 			end
 		end
 	end
 end
 
+function MarineBuildBaseStrategy:CheckTech()
+        if self.tierLevel == 1 then
+        self.techongotype = addon
+        self.techongoname = "cf_space_marine_hq_addon_1"
+--[[        elseif self.tierLevel == 2 then
+        self.techongotype = addon
+        self.techongoname = "cf_space_marine_hq_addon_2"
+        elseif self.tierLevel == 3 then
+        self.techongotype = research
+        self.techongoname = "marine_heavy_armor_deployment"
+        elseif self.tierLevel == 4 then
+        self.techongotype = research
+        self.techongoname = "marines_research_bombardment"
+        elseif self.tierLevel == 5 then
+        self.techongotype = research
+        self.techongoname = "marine_apocalypse_research"]]
+        end   
+end
+
 function MarineBuildBaseStrategy:BuildFlexible()
 
 	-- Dynamic research item syntax: ResearchName, MinTier, RequisitionCost, PowerCost, MinSquadCap, MinSupportCap, SquadName, SquadMinCount
-	local iArmyStrength = cpu_manager:GetArmyStrength()
-	local iLibrarianSquads	= self:CountSquads("space_marine_squad_librarian")
-	local iCommanderSquads	= self:CountSquads("space_marine_squad_force_commander") + self:CountSquads("space_marine_squad_chaplain") + iLibrarianSquads
-	local iInfantrySquads	= self:CountSquads("space_marine_squad_scout") + self:CountSquads("space_marine_squad_tactical") + self:CountSquads("space_marine_squad_assault")
-	
-	-- Compute tier 1 researches
-	if (self.tierLevel >= 1) then
-
-		-- Compute infantry researches
-		if (iInfantrySquads >= 3) then
-			self:DynamicResearch("marine_frag_grenade_research", 1, 25, 75, 0, 0, "space_marine_squad_tactical", 2)
-		end
-
-		-- Compute secondary researches
-		if (iArmyStrength >= 750) then
-
-			-- Compute infantry researches
-			if (iInfantrySquads >= 3) then
-				self:DynamicResearch("marine_health_upgrade_research", 1, 50, 30, 0, 0, nil, 0)
-				self:DynamicResearch("marine_accuracy_upgrade_research", 1, 50, 30, 0, 0, nil, 0)
-			end
-		end
-		
-		-- Compute bonus researches
-		if (iArmyStrength >= 1250) then
-		
-			-- Compute infantry researches
-			if (iInfantrySquads >= 3) then
-				self:DynamicResearch("marine_sergeant_melee_upgrade_1", 1, 65, 25, 0, 0, "space_marine_squad_assault", 2)
-				self:DynamicResearch("marine_sniper_rifle", 1, 75, 35, 0, 0, "space_marine_squad_scout", 2)
-			end
-			
-			-- Compute skull probe researches
-			self:DynamicResearch("marine_skull_probe_infiltrate_research", 1, 50, 50, 0, 0, "space_marine_squad_skull_probe", 1)
-		end
-	end
-	
-	-- Compute tier 2 researches
-	if (self.tierLevel >= 2) then
-	
-		-- Compute infantry researches
-		if (iInfantrySquads >= 3) then
-			self:DynamicResearch("marine_health_upgrade_research_2", 2, 100, 50, 0, 0, nil, 0)
-			self:DynamicResearch("marine_sergeant_ranged_upgrade_1", 2, 60, 35, 0, 0, nil, 0)
-		end
-		
-		-- Compute commander researches
-		if (iLibrarianSquads >= 1) then
-			self:DynamicResearch("marine_force_commander_ability_research_1", 2, 80, 35, 0, 0, "space_marine_squad_force_commander", 1)
-			self:DynamicResearch("marine_commander_health_research_1", 2, 100, 25, 0, 0, nil, 0)
-			self:DynamicResearch("marine_librarian_research_1", 2, 75, 40, 0, 0, "space_marine_squad_librarian", 1)
-		end
-		
-		-- Compute secondary researches
-		if (iArmyStrength >= 1250) then
-		
-			-- Compute infantry researches
-			if (iInfantrySquads >= 3) then
-				self:DynamicResearch("marine_accuracy_upgrade_research_2", 2, 100, 50, 0, 0, nil, 0)
-				self:DynamicResearch("marine_melta_bomb_research", 2, 75, 75, 0, 0, "space_marine_squad_assault", 2)
-			end
-			
-			-- Compute grey knight researches
-			self:DynamicResearch("marine_quickening_research", 2, 75, 50, 0, 0, "space_marine_squad_grey_knights", 1)
-		end
-		
-		-- Compute bonus researches
-		if (iArmyStrength >= 1750) then
-					
-			-- Compute infantry researches
-			if (iInfantrySquads >= 3) then
-				self:DynamicResearch("marine_max_weapons_research", 2, 25, 75, 0, 0, "space_marine_squad_tactical", 2)
-				self:DynamicResearch("marine_sergeant_melee_upgrade_2", 2, 75, 40, 0, 0, "space_marine_squad_assault", 2)
-				self:DynamicResearch("marine_scout_infiltrate_research", 2, 100, 150, 0, 0, "space_marine_squad_scout", 2)
-			end
-		
-			-- Compute vehicle researches
-			self:DynamicResearch("marine_smoke_launcher_research", 2, 75, 25, 0, 0, "space_marine_squad_rhino", 2)
-		end
-	end
-	
-	-- Compute tier 3 researches
-	if (self.tierLevel >= 3) then
-	
-		-- Compute commander researches
-		if (iCommanderSquads >= 1) then
-			self:DynamicResearch("marine_librarian_research_2", 3, 40, 75, 0, 0, "space_marine_squad_librarian", 1)
-		end
-
-		-- Compute secondary researches
-		if (iArmyStrength >= 1750) then
-
-			-- Compute commander researches
-			if (iCommanderSquads >= 1) then
-				self:DynamicResearch("marine_commander_health_research_2", 3, 125, 50, 0, 0, nil, 0)
-				self:DynamicResearch("marine_force_commander_research_2", 3, 100, 50, 0, 0, "space_marine_squad_force_commander", 1)
-			end
-		end
-		
-		-- Compute bonus researches
-		if (iArmyStrength >= 2250) then
-
-			-- Compute terminator researches
-			if (self:CountSquads("space_marine_squad_terminator") + self:CountSquads("space_marine_squad_terminator_assault") >= 1) then
-				self:DynamicResearch("marine_personalteleporter_research", 3, 75, 125, 0, 0, nil, 0)
-			end
-		end
-	end
 
 	-- Restrict dynamic builds to hard difficulty or higher
 	if (CpuManager.AISettings.bMultiBuildings) then
-	
-		-- Dynamic buildings
-		-- Item-Syntax: BuildingName, BuildingCount, MinTier, MinRequisition, MinPower, MinSquadCap, MinSupportCap
-		self:DynamicBuild("space_marine_barracks", 2, 1, 800, 0, 0, 0)
-		self:DynamicBuild("space_marine_vehicle_building", 2, 2, 200, 600, 0, 0)
-		self:DynamicBuild("space_marine_barracks", 3, 3, 2000, 0, 0, 0)
-		self:DynamicBuild("space_marine_vehicle_building", 3, 3, 500, 1500, 0, 0)
-		self:DynamicBuild("space_marine_hq", 2, 2, 1500, 0, 0, 0)
+           if g_iGMT > 120 or self:GetBuildingCountByName("cf_space_marine_barracks") >= 5 then
+	   self:DynamicBuild("cf_space_marine_generator", 6, 1, 0, 0, 0, 0)
+           end
+	end
+	self:BuildVehicle()
+    self:BuildDevast()
+    self:BuildDread()
+	self:BuildBarrack()
+	self:BuildTSM()
+	self:BuildAsolt()
+	if g_iGMT > 30 then 
+	self:DynamicAddon("cf_space_marine_hq_addon_1", 1, 1, 0, 0, 0, 0, nil, nil, false)
 	end
 end
 
+function MarineBuildBaseStrategy:BuildTSM()
+    local iRequisition = resource_manager:GetResourceAmount():Get( ResourceAmount.RT_Requisition )
+    local iUnitID1 = cpu_manager.stats:GetSquadID("cf_space_marine_squad_tactical")
+    if iRequisition < 30 then
+        return
+    end
+    if (self:PlanCount("Build Unit Plan", iUnitID1)>3) then
+        return
+    end
+    local tBuildType = CpuBuildType()
+    tBuildType.btype = CpuPrerequisites.BT_Squad
+    tBuildType.name = "cf_space_marine_squad_tactical"
+    if (self:TryBuild(tBuildType)) then
+        return
+    end
+end
+
+function MarineBuildBaseStrategy:BuildAsolt()
+    local iRequisition = resource_manager:GetResourceAmount():Get( ResourceAmount.RT_Requisition )
+    local iUnitID1 = cpu_manager.stats:GetSquadID("cf_space_marine_squad_assault")
+    if iRequisition < 30 then
+        return
+    end
+    if (self:PlanCount("Build Unit Plan", iUnitID1)>3) then
+        return
+    end
+    local tBuildType = CpuBuildType()
+    tBuildType.btype = CpuPrerequisites.BT_Squad
+    tBuildType.name = "cf_space_marine_squad_assault"
+    if (self:TryBuild(tBuildType)) then
+        return
+    end
+end
+
+function MarineBuildBaseStrategy:BuildDevast()
+    local iRequisition = resource_manager:GetResourceAmount():Get( ResourceAmount.RT_Requisition )
+    local iUnitID1 = cpu_manager.stats:GetSquadID("cf_space_marine_squad_devastator")
+    if iRequisition < 30 then
+        return
+    end
+    if (self:PlanCount("Build Unit Plan", iUnitID1)>3) then
+        return
+    end
+    local tBuildType = CpuBuildType()
+    tBuildType.btype = CpuPrerequisites.BT_Squad
+    tBuildType.name = "cf_space_marine_squad_devastator"
+    if (self:TryBuild(tBuildType)) then
+        return
+    end
+end
+
+function MarineBuildBaseStrategy:BuildDread()
+    local iRequisition = resource_manager:GetResourceAmount():Get( ResourceAmount.RT_Requisition )
+    local iUnitID1 = cpu_manager.stats:GetSquadID("cf_space_marine_squad_dreadnought")
+    if iRequisition < 30 then
+        return
+    end
+    if (self:PlanCount("Build Unit Plan", iUnitID1)>3) then
+        return
+    end
+    local tBuildType = CpuBuildType()
+    tBuildType.btype = CpuPrerequisites.BT_Squad
+    tBuildType.name = "cf_space_marine_squad_dreadnought"
+    if (self:TryBuild(tBuildType)) then
+        return
+    end
+end
+
+function MarineBuildBaseStrategy:BuildBarrack()
+    local iRequisition = resource_manager:GetResourceAmount():Get( ResourceAmount.RT_Requisition )
+    local iUnitID1 = cpu_manager.stats:GetBuildingID("cf_space_marine_barracks")
+    if iRequisition < 30 then
+        return
+    end
+    if (self:GetBuildingCountByName("cf_space_marine_barracks") >= 5) then
+        return
+    end
+    local tBuildType = CpuBuildType()
+    tBuildType.btype = CpuPrerequisites.BT_Building
+    tBuildType.name = "cf_space_marine_barracks"
+    if (self:TryBuild(tBuildType)) then
+        return
+    end
+end
+
+function MarineBuildBaseStrategy:BuildVehicle()
+    local iRequisition = resource_manager:GetResourceAmount():Get( ResourceAmount.RT_Requisition )
+    local iUnitID1 = cpu_manager.stats:GetBuildingID("cf_space_marine_vehicle_building")
+    if iRequisition < 30 then
+        return
+    end
+    if (self:GetBuildingCountByName("cf_space_marine_vehicle_building") >= 2) then
+        return
+    end
+    local tBuildType = CpuBuildType()
+    tBuildType.btype = CpuPrerequisites.BT_Building
+    tBuildType.name = "cf_space_marine_vehicle_building"
+    if (self:TryBuild(tBuildType)) then
+        return
+    end
+end
 -- Arkhan 01.2006: Method to check if force tech should be computed
 function MarineBuildBaseStrategy:ForceTech()
 
-	-- Check time
-	if (g_iGMT < 60 * CpuManager.ForceTech.StartTier1) then
-		return false
-	end
+	-- -- Check time
+	-- if (g_iGMT < 60 * CpuManager.ForceTech.StartTier1) then
+		-- return false
+	-- end
 	
-	-- Check ressources
-	local iRequisition = resource_manager:GetResourceAmount():Get( ResourceAmount.RT_Requisition )
-	local iPower = resource_manager:GetResourceAmount():Get( ResourceAmount.RT_Power )
+	-- -- Check resources
+	-- local iRequisition = resource_manager:GetResourceAmount():Get( ResourceAmount.RT_Requisition )
+	-- local iPower = resource_manager:GetResourceAmount():Get( ResourceAmount.RT_Power )
 
-	-- Check tier
-	local iTierLevel = self:GetTierLevel()
-	if (iTierLevel == 1) then
+	-- -- Check tier
+	-- local iTierLevel = self:GetTierLevel()
+	-- if (iTierLevel == 1) then
 	
-		-- Check resources
-		if (iRequisition > 600 and iPower > 200) then
-			return false
-		end
-		return not self.m_bHQAddon1
-		
-	elseif (iTierLevel == 2) then
-
-		-- Check current build program
-		if (self.m_iCurrentBuildProgram == 2) then
-
-			-- Check build channel for ability building
-			if (self:GetBuildingCountByName("space_marine_ability_building", false) < 1) then
-				return true
-			end		
-		else
-		
-			-- Check build channel for machine cult
-			if (self:GetBuildingCountByName("space_marine_vehicle_building", false) < 1) then
-				return true
-			end
-		end
-		
-		-- Check time
-		if (g_iGMT > 60 * CpuManager.ForceTech.StartTier2 and (iRequisition < 600 or iPower < 600)) then
-			return true
-		end
-		
-	elseif (iTierLevel == 3) then	
-
-		-- Check time
-		if (g_iGMT > 60 * CpuManager.ForceTech.StartTier3 and (iRequisition < 600 or iPower < 600)) then
-			return true
-		end
-	end
+		-- -- Check resources
+		-- if (g_iGMT > 60 * CpuManager.ForceTech.StartTier1 or (iRequisition > 250 and iPower > 100)) and g_iGMT > 60 then
+		-- self:DynamicAddon("cf_space_marine_hq_addon_1", 1, 1, 0, 0, 0, 0, nil, nil, false)
+			-- return true
+		-- end
+	-- end
 	return false
 end
 

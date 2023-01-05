@@ -50,6 +50,7 @@ UnitStrengths.space_marine_squad_whirlwind = 490
 UnitStrengths.space_marine_squad_predator = 465
 UnitStrengths.space_marine_squad_land_raider = 1000
 UnitStrengths.cf_space_marine_squad_tactical = 100
+UnitStrengths.cf_space_marine_squad_assault = 100
 UnitStrengths.cf_space_marine_squad_servitor = 0
 
 LeaderStrengths.space_marine_squad_tactical = 75
@@ -1289,6 +1290,66 @@ SpaceMarineUnitStats =
 			},
 			{
 				name = "CF_space_marine_knife_tactical",
+				effectiveness = GenerateUnitEffectiveness(4.4,4.5,4.5,3.6,3.6,0.0,0.0,0.0,3.5,0.4,2.8,3.5,0.9,0.0,0.0,0.0,0.0),
+				range = UnitStatsAI.RT_Melee,
+			},
+		}
+	},
+	{
+		name = "CF SM Assault",
+		sbp_name = "cf_space_marine_squad_assault",
+		ebp_name = "cf_assault_marine",
+		class = UnitStatsAI.UC_HeavyInfantryHigh,
+		rating = 6.0,
+		potential =
+		{
+			{
+				name = "None",
+				effectiveness = GenerateUnitEffectiveness(3.8,4.5,4.1,4.7,4.2,0.6,1.8,0.0,4.1,1.6,2.4,3.0,0.8,0.0,0.0,0.0,0.0),
+				range = UnitStatsAI.RT_Ranged,
+			},
+			{
+				name = "CF_space_marine_knife_tactical",
+				effectiveness = GenerateUnitEffectiveness(4.4,4.5,4.5,3.6,3.6,0.0,0.0,0.0,3.5,0.4,2.8,3.5,0.9,0.0,0.0,0.0,0.0),
+				range = UnitStatsAI.RT_Melee,
+			},
+		}
+	},
+	{
+		name = "CF SM Devastator",
+		sbp_name = "cf_space_marine_squad_devastator",
+		ebp_name = "cf_space_marine_devastator",
+		class = UnitStatsAI.UC_HeavyInfantryHigh,
+		rating = 6.0,
+		potential =
+		{
+			{
+				name = "None",
+				effectiveness = GenerateUnitEffectiveness(3.8,4.5,4.1,4.7,4.2,0.6,1.8,0.0,4.1,1.6,2.4,3.0,0.8,0.0,0.0,0.0,0.0),
+				range = UnitStatsAI.RT_Ranged,
+			},
+			{
+				name = "CF_space_marine_knife_tactical",
+				effectiveness = GenerateUnitEffectiveness(4.4,4.5,4.5,3.6,3.6,0.0,0.0,0.0,3.5,0.4,2.8,3.5,0.9,0.0,0.0,0.0,0.0),
+				range = UnitStatsAI.RT_Melee,
+			},
+		}
+	},
+	{
+		name = "CF SM Dreadnought",
+		sbp_name = "cf_space_marine_squad_dreadnought",
+		ebp_name = "cf_dreadnought",
+		class = UnitStatsAI.UC_HeavyInfantryHigh,
+		rating = 6.0,
+		potential =
+		{
+			{
+				name = "None",
+				effectiveness = GenerateUnitEffectiveness(3.8,4.5,4.1,4.7,4.2,0.6,1.8,0.0,4.1,1.6,2.4,3.0,0.8,0.0,0.0,0.0,0.0),
+				range = UnitStatsAI.RT_Ranged,
+			},
+			{
+				name = "None",
 				effectiveness = GenerateUnitEffectiveness(4.4,4.5,4.5,3.6,3.6,0.0,0.0,0.0,3.5,0.4,2.8,3.5,0.9,0.0,0.0,0.0,0.0),
 				range = UnitStatsAI.RT_Melee,
 			},

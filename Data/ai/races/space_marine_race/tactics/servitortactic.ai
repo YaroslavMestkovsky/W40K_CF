@@ -13,3 +13,7 @@ function ServitorTactic:IsAffectedByMorale()
 	return false
 end
 
+function ServitorTactic:IsEngineerWhoCanCapture()
+	return true
+end
+

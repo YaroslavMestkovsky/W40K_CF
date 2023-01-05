@@ -1,6 +1,6 @@
 ----------------------------------------
--- File: 'debug_display.ai'
--- Edited by Dark40k @ 14.10.2008
+-- File: debug_display.ai'
+-- Edited by Relic @ 02.05.2006
 
 
 --------------------------------------------------------------------------------------------------------------
@@ -12,14 +12,27 @@ class 'DebuggingDisplay'
 function DebuggingDisplay:__init( )
 	
 	--draw color circles for debug purposes
-	--self.dcircle = true
+	--self.dcircle = false
 
-	self.debug_display_height = 0.0003
+	self.debug_display_height = 0.04
 	self.debug_view = 0
 
 	--enable debug display according to self.debug_view
 	self.debug = false
 
+end
+
+-- ILE
+function DebuggingDisplay:DebugOn()
+
+	self.debug = true
+	
+end
+
+function DebuggingDisplay:DebugOff()
+
+	self.debug = false
+	
 end
 
 --------------------------------------------------------------------------------------------------------------
@@ -31,15 +44,19 @@ function DebuggingDisplay:DisplayStats()
 	if (self.debug == false) then
 		return 
 	end
-		
+	
 	dr_clear("aidebug"..cpu_manager.player_id)
 
 	if self.debug_view == 0 then
 		self:PrintSummary()
+--	elseif self.debug_view == 8 then
+--		self:PrintPlayerAssets()
 	elseif self.debug_view == 1 then
 		self:PrintStrategiesSummary()
 	elseif self.debug_view == 2 then
 		self:PrintTacticsSummary()
+--	elseif self.debug_view == 7 then
+--		self:PrintTerrainAnalyzerSummary()
 	elseif self.debug_view == 3 then
 		self:PrintDemands()
 	elseif self.debug_view == 4 then
@@ -48,10 +65,6 @@ function DebuggingDisplay:DisplayStats()
 		self:PrintAvgEffectiveness()
 	elseif self.debug_view == 6 then
 		self:PrintEnemySquads()
-	elseif self.debug_view == 7 then
-		self:PrintTerrainAnalyzerSummary()
-	elseif self.debug_view == 8 then
-		self:PrintPlayerAssets()
 	end
 
 end
@@ -206,22 +219,6 @@ function DebuggingDisplay:PrintAvgEffectiveness()
 	yval = yval + ystep*0.5
 	
 	local tab = 0.4
-	
-	local debug_table = {}
-	debug_table[UnitStatsAI.UC_HeavyInfantryMed]    = "HeavyInfantryMed"
-	debug_table[UnitStatsAI.UC_HeavyInfantryHigh]   = "HeavyInfantryHigh"
-	debug_table[UnitStatsAI.UC_LightInfantryLow]    = "LightInfantryLow"
-	debug_table[UnitStatsAI.UC_LightInfantryMed]    = "LightInfantryMed"
-	debug_table[UnitStatsAI.UC_LightInfantryHigh]   = "LightInfantryHigh"
-	debug_table[UnitStatsAI.UC_VehicleLow] 	     = "VehicleLow"
-	debug_table[UnitStatsAI.UC_VehicleMed] 	     = "VehicleMed"
-	debug_table[UnitStatsAI.UC_VehicleHigh]	     = "VehicleHigh"
-	debug_table[UnitStatsAI.UC_MonsterMed] 	     = "Monster Med"
-	debug_table[UnitStatsAI.UC_MonsterHigh] 	 = "Monster High"
-	debug_table[UnitStatsAI.UC_Commander] 	     = "Commander"
-	debug_table[UnitStatsAI.UC_BuildingLow] 	     = "BuildingLow"
-	debug_table[UnitStatsAI.UC_BuildingMed] 	     = "BuildingMed"
-	debug_table[UnitStatsAI.UC_BuildingHigh]	     = "BuildingHigh"
 
 	for i in cpu_manager.strategies do
 	
@@ -243,9 +240,7 @@ function DebuggingDisplay:PrintAvgEffectiveness()
 					xval = xval_prev
 					yval = yval + ystep
 				
-
-				
-					self:Print( xval, yval, tostring(unit_stats:GetSquadName())..": "..tostring(debug_table[class]) )
+					self:Print( xval, yval, tostring(unit_stats:GetSquadName())..": "..tostring(cpu_manager.strategies[i].debug_table[class]) )
 					xval = xval + tab
 										
 					self:Print( xval, yval, string.format( "%.2f", unit_stats:GetEffectivenessRating( class ) ) )
@@ -318,6 +313,9 @@ function DebuggingDisplay:PrintSquadStats( squad_ai )
 			
 			local squad_id = squad_ai:GetID()
 			local squad_pos = squad_ai:GetPosition() 
+			
+			self:Print( xval, yval, tostring( cpu_manager:IsMoving( squad_ai ) ) )
+			xval = xval + tab
 			
 			self:Print( xval, yval, tostring( vec2str(squad_pos) ) )
 			xval = xval + tab
@@ -401,8 +399,7 @@ function DebuggingDisplay:PrintDemands()
 				xval = xval + tab
 
 				-- Owner
-				-- Dark40k 10.2008 : replaced CpuPrerequisites by CpuPrerequisites2
-				local prereq = CpuPrerequisites2( cpu_manager.cpu_player, unit_stats:GetSquadName(), CpuPrerequisites.BT_Squad )
+				local prereq = CpuPrerequisites( cpu_manager.cpu_player, unit_stats:GetSquadName(), CpuPrerequisites.BT_Squad )
 				local ownership = 0
 				if prereq:UnfulfilledOwnership() then
 					ownership = cpu_manager.strategies[i].info.ownership_bias
@@ -426,10 +423,10 @@ end
 
 function DebuggingDisplay:PrintSummary()
 
-	local xval	= 0.01
+	local xval	= 0.05
 	local yval	= self.debug_display_height
-	local xstep	= 0.01
-	local ystep	= 0.01
+	local xstep	= 0.03
+	local ystep	= 0.03
 
 	local tab = 0.065
 	
@@ -602,18 +599,17 @@ end
 
 function DebuggingDisplay:PrintPlayerAssets()
 	local yval = self.debug_display_height
-
+	
 	yval = self:PrintPlayerSquads(yval)	
---  yval = self:PrintPlayerBases(yval + 0.06)	
+	yval = self:PrintPlayerBases(yval + 0.06)	
 --	yval = self:PrintMilitaryManager(yval + 0.06)
 
 end
 
 function DebuggingDisplay:PrintPlayerSquads(yval)
 
-
-	local ystep	= 0.025
-	local xcol = {0.02,0.22,0.28,0.34,0.51,0.61,0.69,0.75,0.91,0.99,1.03}
+	local ystep	= 0.03
+	local xcol = {0.02,0.22,0.28,0.36,0.60,0.72,0.84,0.92,0.98,1.06,1.14}
 	
 --	local player_stats = self.stats:GetPlayerStats()
 	local player_stats = cpu_manager.cpu_player:GetPlayerStats()
@@ -635,8 +631,11 @@ function DebuggingDisplay:PrintPlayerSquads(yval)
 	self:Print( xcol[4], yval, "IS(idle,geer,rang,r-frce,brok,hurt,inf,det)")
 	self:Print( xcol[5], yval, "DO(build/prog,capt,fight)")	
 	self:Print( xcol[6], yval, "MV(m-type,stance)")	
-	--self:Print( xcol[7], yval, "<location>" )
-	self:Print( xcol[7], yval, "GOAL:" )
+	self:Print( xcol[7], yval, "<location>" )
+	self:Print( xcol[8], yval, "GOAL:" )
+	self:Print( xcol[9], yval, "name" )
+	self:Print( xcol[10], yval, "(type)" )
+	self:Print( xcol[11], yval, "<location>" )
 	yval = yval + ystep
 
 	for squad_ai in player_stats:GetSquads() do
@@ -695,11 +694,10 @@ function DebuggingDisplay:PrintPlayerSquads(yval)
 			
 			self:Print(xcol[6],yval,"M("..tmpstr..","..tmpstr2.."/"..squad_ai:GetMeleeStance()..")")
 			
-			--pos = squad_ai:GetPosition()
-			--self:Print(xcol[7],yval,"<"..math.floor(pos.x+0.5)..","..math.floor(pos.y+0.5)..","..math.floor(pos.z+0.5)..">")
+			pos = squad_ai:GetPosition()
+			self:Print(xcol[7],yval,"<"..math.floor(pos.x+0.5)..","..math.floor(pos.y+0.5)..","..math.floor(pos.z+0.5)..">")
 
-			tmpstr3 = squad_ai:GetStateName()
-			self:Print(xcol[7],yval,"("..string.format("%4.4s", tmpstr3)..")")
+			self:Print(xcol[8],yval,"("..squad_ai:GetStateName()..")")
 --			self:Print(xcol[3],yval,"("..math.floor((squad_ai:GetHealthPercentage()*100)+0.5).."/"..math.floor(squad_ai:GetProRatedCost())..")")
 
 		else
@@ -905,7 +903,7 @@ function DebuggingDisplay:PrintStrategiesSummary()
 		local strategy = cpu_manager.strategies[i]
 		
 		self:Print(xcol[1],yval,strategy:GetName().."("..strategy:GetStatus()..")")
-		self:Print(xcol[2],yval,"P("..tostring(strategy:PlanCount())..")")
+		self:Print(xcol[2],yval,"P("..tostring(strategy:GetPlanCount())..")")
 --		self:Print(xcol[3],yval,"D("..tostring(strategy:GetDebugInfo())..")")
 
 		local tmpstr = ""

@@ -1,6 +1,7 @@
 ----------------------------------------
 -- File: 'buildresearchplan.ai'
 -- Edited by LarkinVB @   15.08.2005
+-- Edited by Aliaska_RuS
 
 import ("Plans/BuildPlan.ai")
 

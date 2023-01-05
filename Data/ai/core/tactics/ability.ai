@@ -1,6 +1,7 @@
 ----------------------------------------
 -- File: 'ability.ai' (For SoulStorm)
 -- Edited by Thudmeizer @ 15.11.2007
+-- Edited by Aliaska_RuS
 
 -------------------------------------------------------------------------
 -- Helper functions to cast abilities ----------------------------
@@ -12,6 +13,28 @@ Ability =
 --pass these filters into the functions below to figure out the target to do special ability on
 Filters = 
 {
+	CloseInfiltratedOrVisibleEnemyInfantry = function( vPosition, iRange, iCount )
+		
+		if (iCount == nil) then
+			iCount = 1 
+		end
+		
+		-- Quick check
+		if (not cpu_manager:CloseEnemyUnits(vPosition, iRange)) then
+			return nil
+		end
+		
+		-- possibly broken
+		local oInfiltratedSquad = cpu_manager.cpu_player:FindFirstInfiltratedEnemy( vPosition, iRange, iCount )
+		if (oInfiltratedSquad ~= nil) then
+			--Infiltrated enemies have priority
+			return oInfiltratedSquad
+		end
+		
+		--if it has not found cloaked enemies try to find visible enemies
+		return cpu_manager.cpu_player:FindFirstInfantryEnemy( vPosition, iRange, iCount )		
+	end,
+
 	CloseHurt = function( position, tolerance, count )
 
 		return cpu_manager.cpu_player:FindFirstHurtSquad( position, tolerance )

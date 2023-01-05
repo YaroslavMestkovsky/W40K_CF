@@ -145,19 +145,19 @@ function space_marine_race:GetBuildingType(sBuildingName)
 	if (sBuildingName == "space_marine_hq") then
 		return "HQ", 0
 		
-	elseif (sBuildingName == "space_marine_generator") then
+	elseif (sBuildingName == "cf_space_marine_generator") then
 		return "Generator", 0
 		
 	elseif (sBuildingName == "space_marine_thermo_generator") then
 		return "BiggerGenerator", 0
 		
-	elseif (sBuildingName == "space_marine_vehicle_building") then
+	elseif (sBuildingName == "cf_space_marine_vehicle_building") then
 		return "VehicleBuilding", 0
 		
 	elseif (sBuildingName == "space_marine_armoury") then
 		return "Armoury", 0
 		
-	elseif (sBuildingName == "space_marine_listening_post") then
+	elseif (sBuildingName == "cf_space_marine_listening_post") then
 		return "ListeningPost", 0
 		
 	elseif (sBuildingName == "space_marine_turret_bolter") then

@@ -48,7 +48,7 @@ function aitrace( msg, bAILog, bReset )
 		local txt = timestr.." "..msg
 		
 		if (g_bAITrace) then
-			local log = io.open("Ai_Extended"..tostring(player_id)..".log", "a+")
+			local log = io.open("dow_ai_"..tostring(player_id)..".log", "a+")
 			if (log) then
 				log:write("AI"..tostring(player_id), " ", txt, "\n")
 				log:close()
@@ -86,7 +86,7 @@ function aitraceinit( msg )
 	    local sec = math.mod( gmt, 60 )
 	    local timestr = string.format("%02.0f",mint)..":"..string.format("%02.0f",sec)
 		local txt = timestr.." "..msg		
-		local log = io.open("Ai_Extended"..tostring(player_id)..".log", "w+")
+		local log = io.open("dow_ai_"..tostring(player_id)..".log", "w+")
 		if (log) then
 			log:write("AI"..tostring(player_id), " ", txt, "\n")
 			log:close()
@@ -112,7 +112,7 @@ function dbAssert( b )
 		local line = debug_info.currentline
 		local name = debug_info.name
 
-		local msg = "Assertion failed at "..source..", line "..line..",name"..name
+		local msg = "Assertion failed at "..source..", line "..line
 
 		aitrace(msg)
 		--aitimelog( "d:\\assert.log", msg)
@@ -219,7 +219,7 @@ function profile_start( name )
     if g_profile then
 	   aiprofile_start( cpu_manager.cpu_player, name )
 	elseif a_profile then
-	   aitimelog("f:\\logs\\trace.log", "START "..name )  
+	   aitimelog("d:\\logs\\trace.log", "START "..name )  
 	end
 
 end
@@ -229,7 +229,7 @@ function profile_end(name)
 	if g_profile then
 		aiprofile_end( cpu_manager.cpu_player, name )
 	elseif a_profile then
-	   aitimelog("f:\\logs\\trace.log", "END "..name )  
+	   aitimelog("d:\\logs\\trace.log", "END "..name )  
 	end
 
 end
@@ -289,7 +289,7 @@ function aitimelog( logfile, msg )
    local mint = math.floor( gmt / 60 )
    local sec = math.mod( gmt, 60 )
    local timestr = string.format("%02.0f",mint)..":"..string.format("%02.0f",sec)
-   if log~=nil then
+   
    if player_id == nil then 
 	  log:write("AI"," ", timestr, tostring(msg) , "\n") 
    else 
@@ -297,7 +297,7 @@ function aitimelog( logfile, msg )
    end 
 
   log:close() 
-   end
+
 end
 
 function dlg( fl, msg )
@@ -318,7 +318,7 @@ function clg( pos1, pos2 )
    end
 
    --only log single AI
-   if cpu_manager.player_id ~= iCurrentPlayer then
+   if cpu_manager.player_id ~= 1001 then
 	  return
    end
 
@@ -338,7 +338,7 @@ function blg( squad, msg )
    end
 
    --only log single AI
-   if true or cpu_manager.player_id ~= iCurrentPlayer then
+   if true or cpu_manager.player_id ~= 1001 then
 	  return
    end
       
@@ -369,7 +369,7 @@ function dcircle( pos, radius, color, text, clear )
    dbAssert( radius ~= nil )
 
    --only display single AI
-   if cpu_manager.player_id ~= iCurrentPlayer then
+   if cpu_manager.player_id ~= 1004 then
 	  return
    end
 

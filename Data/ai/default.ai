@@ -1,6 +1,7 @@
 ----------------------------------------------------------------------------------------------
 -- default.lua
 -- This file loads the default behaviour for AI
+-- Edited by Aliaska_RuS
 ----------------------------------------------------------------------------------------------
 
 import( 'Core/cpu_manager.ai' )
@@ -13,14 +14,14 @@ military_module 	= nil
 debug_display 		= nil
 
 --for assertions
---iCurrentPlayer = 0
+iCurrentPlayer = 0
 ai_assert = false
 
 function DebugDisplay()
 
-	--if (cpu_manager.player_id ~= iCurrentPlayer) then
-	--	return
-	--end
+	if (cpu_manager.player_id ~= iCurrentPlayer) then
+		return
+        end
 		
 	dr_setautoclear("aidebug"..player_id, 0)
 
@@ -35,39 +36,42 @@ end
 
 function AI_Think()	
 
-	--ProfileAllBegin()
+--	ProfileAllBegin()
 
 	--if something asserted, stop processing
 	if not cpu_manager.cpu_player:DoUpdate() then
 		return
 	end
-	
+
 	if( ai_assert == true ) then
 		DebugDisplay()
 		return
 	end
-		
+
 	--reset aitraces
 	tracing = {}
 	cpu_manager.terrain_analyzer:Update()
 	cpu_manager:Update()
-	--ProfileAllEnd()
 
-	DebugDisplay()
-
-	--do garbage collection
 	collectgarbage(0)
+
+--	ProfileAllEnd()
+
+--	DebugDisplay()
 
 end
 
 function UpdateStats()
-	--profile_start("UpdateStats")
+--	profile_start("UpdateStats")
 	
 	cpu_manager.stats:Update()
 	
-	--profile_end("UpdateStats")
+--	profile_end("UpdateStats")
 end
 
+function UpdateManagersCPU()
+        cpu_manager:UpdateManagers()
+end
 
 function ProfileAllBegin()
 	
@@ -106,27 +110,37 @@ function ProfileAllEnd()
 	
 end
 
+function garbage()
+	--do garbage collection
+	collectgarbage(0)
+end
+
 function InitializeAI()
 
 	player_id = AI_GetPlayerID()
 	
 	cpu_manager = CpuManager( player_id )
-	
+      -- if cpu_manager:ListLoader() then
 	if cpu_manager:Initialize() then
 	
 		dbAssert( build_manager ~= nil )
 		dbAssert( debug_display ~= nil )
 
-		Rule_AddInterval(AI_Think, 0.5)
-		Rule_AddInterval(UpdateStats, 5)
+		Rule_AddInterval(AI_Think, 0.05)
+		Rule_AddInterval(UpdateManagersCPU, 0.25)
+		Rule_AddInterval(UpdateStats, 1+(cpu_manager.player_id-1000)*0.125)
+--		Rule_AddInterval(garbage, 1)
 		
 	else
 		cpu_manager = nil
 		print( "failed to load ai: "..player_id )
 	end
-	
+   --[[    else
+                cpu_manager = nil
+		print( "failed to Listload ai: "..player_id )
+       end]]
 	-- turn display on and off
-	dr_setdisplay("aidebug"..player_id, 0.5)
+--	dr_setdisplay("aidebug"..player_id, 0.5)
 	
 end
 
