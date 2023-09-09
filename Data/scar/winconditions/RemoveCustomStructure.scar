@@ -1,5 +1,6 @@
 --Aliaska_RuS
 --SorryOK(rus)
+--TODO используется внутри Castle.scar, отдельно не работает.
 
 import("ScarUtil.scar")
 import("WXPScarUtil.scar")
@@ -68,7 +69,7 @@ listrestrictTyranidsBuild =
 {
 
 }
-listrestrictAllStructure =
+listrestrictAllStructure =  --TODO ванильные здания, которые мы удаляем из мода
 {
     "chaos_greater_sacrificial_circle",
 	"chaos_hq",

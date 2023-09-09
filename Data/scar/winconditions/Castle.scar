@@ -9,6 +9,8 @@ import("Command.scar");
 import("Groups.scar");
 import("WXPGroups.scar");
 
+--TODO переместить функции вверх до инита
+
 function OnGameSetup ()
 	Setup_Player(2, "SorryOK(rus)", "ork_race", 0)
 	Setup_Player(3, "Aliaska_RuS", "ork_race", 1)
@@ -16,11 +18,14 @@ end
 
 function CastleMain ()
 
-
+    --TODO находим 1 игрока и его расу
 	ePlayer1ID = World_GetPlayerAt(0)
 	sPlayer1Race = Player_GetRaceName(ePlayer1ID)
+
+	--TODO находим 2 игрока и его расу
 	ePlayer2ID = World_GetPlayerAt(1)
 	sPlayer2Race = Player_GetRaceName(ePlayer2ID)
+
 	ePlayer3ID = World_GetPlayerAt(2)
 	ePlayer4ID = World_GetPlayerAt(3)
 
@@ -28,7 +33,7 @@ function CastleMain ()
 	
 	_CreateEntity_Private = {
 
-	CreateEntity = function( playerId, EntitygroupName, EntityBlueprint, pos, numEntity, bSpawn )	
+	CreateEntity = function( playerId, EntitygroupName, EntityBlueprint, pos, numEntity, bSpawn )
 		-- only create sgroup if it doesnt exist yet
 		local EgroupId = EGroup_CreateIfNotFound( EntitygroupName )
 		
@@ -48,7 +53,7 @@ function CastleMain ()
 			
 			if( bSpawn ~= nil and bSpawn == true ) then
 				-- spawn it
-				Entity_Spawn( EntityId )
+				Entity_Spawn( EntityId )  --TODO спавн главки, мод
 				EGroup_Add( temp, EntityId )
 			end
 			
@@ -82,26 +87,26 @@ function OnInit()
 	}
 	
 	--FOW_RevealAll()
-	Player_SetAllResources(ePlayer1ID, 2000, 1000)
+	Player_SetAllResources(ePlayer1ID, 2000, 1000)  --TODO снизить, выставлено для теста
 	Player_SetAllResources(ePlayer2ID, 2000, 1000)
 
-	Cpu_Enable(ePlayer3ID, false)
+	Cpu_Enable(ePlayer3ID, false)  --TODO вырубаем ботов
 	Cpu_Enable(ePlayer4ID, false)
 	
 	Rule_AddInterval( Timer, 1 )
 	Rule_AddInterval( Transfer1, 1 )
 	Rule_AddInterval( Transfer2, 1 )
-	Rule_AddOneShot ( Rem, 0.2 )
-	Rule_AddOneShot ( UnRestrictCustomStructure,0.5)
+	Rule_AddOneShot ( Rem, 0.2 )  --TODO рестриктим дефолтные здания
+	Rule_AddOneShot ( UnRestrictCustomStructure, 0.5)  --TODO анрестриктим кастомные здания
 	--Rule_AddOneShot ( UnRestrictAll, 200)
-	
-	restrictunitall()
-	
-	rEntity(ePlayer3ID, "ork_hq")
-	rEntity(ePlayer4ID, "ork_hq")
-	
 
-	
+	restrictunitall()  --TODO убираем дефолтных юнитов
+
+	rEntity(ePlayer3ID, "ork_hq")  --TODO делитаем дефолтные главки
+	rEntity(ePlayer4ID, "ork_hq")
+
+
+
 end
 
 function Rem()
@@ -112,11 +117,10 @@ function DestroyHQ()
 	
 	InitHQ()
 	
-	-- wait a bit of time before adding this rule so it doesnt get executed on the same frame as the other win
-	-- conditions
+	--TODO ждем перед применением условий победы (во избежание багов)
 	Rule_AddOneShot( DestroyHQ_AddMainRule, 0.75 )
 	
-	obj_table_P4 = { title_id = 60006, short_desc_id = 60306, help_tip_id = 60306 }
+	obj_table_P4 = { title_id = 60006, short_desc_id = 60306, help_tip_id = 60306 }  --TODO не трогать, какое-то говно
 	
 	Objective_Add( obj_table_P4, 1 )
 end
@@ -126,7 +130,7 @@ function DestroyHQ_AddMainRule()
 end
 
 function InitHQ()
-            -- get the hq for all players
+            --TODO добавляем модовские главки
             for i = 1, 2
 
             do
@@ -158,13 +162,13 @@ function InitHQ()
 							hqBlueprint = "monolith"
 
 						elseif playerRace == "ork_race" then
-							hqBlueprint = "cf_ork_hq"
+							hqBlueprint = "cf_ork_hq"  --TODO орк из мода
 
 						elseif playerRace == "sisters_race" then
 							hqBlueprint = "sisters_hq"
 
 						elseif playerRace == "space_marine_race" then
-							hqBlueprint = "cf_space_marine_hq"
+							hqBlueprint = "cf_space_marine_hq"  --TODO СМ из мода
 
 						elseif playerRace == "tau_race" then
 							hqBlueprint = "tau_hq"
@@ -186,7 +190,7 @@ function InitHQ()
 
 end
 
-function UpdateHQ()
+function UpdateHQ()  --TODO условие победы, дефолт
             -- get the hq for all players and place them in the commanders table.
             for i = 1, 2
 
@@ -214,7 +218,7 @@ function UpdateHQ()
 
 end
 
-function CheckDestroyHQ()
+function CheckDestroyHQ()  --TODO условие победы, дефолт
 
 	-- update HQ count
 	UpdateHQ();
@@ -235,7 +239,7 @@ function CheckDestroyHQ()
 	Util_CheckOneTeamLeft("destroyhq");
 end
 
-function AddArmy_Builders()
+function AddArmy_Builders()  --TODO спавн строителя, мод
 	
 	-- Add an army to the game.
 	local count = World_GetPlayerCount()
@@ -261,13 +265,13 @@ function AddArmy_Builders()
 			Util_CreateSquadsAtPosition(player, "startbuilder", "necron_builder_scarab_squad", pos, 1)
 		
 		elseif (Player_GetRaceName(player) == "ork_race") then
-			Util_CreateSquadsAtPosition(player, "startbuilder", "cf_ork_squad_grot", pos, 1)
+			Util_CreateSquadsAtPosition(player, "startbuilder", "cf_ork_squad_grot", pos, 1) --TODO орк
 			
 		elseif (Player_GetRaceName(player) == "sisters_race") then			
 			Util_CreateSquadsAtPosition(player, "startbuilder", "sisters_squad_servitor", pos, 1)
 		
 		elseif (Player_GetRaceName(player) == "space_marine_race") then
-			Util_CreateSquadsAtPosition(player, "startbuilder", "cf_space_marine_squad_servitor", pos, 1)
+			Util_CreateSquadsAtPosition(player, "startbuilder", "cf_space_marine_squad_servitor", pos, 1)  --TODO СМ
 			
 		elseif (Player_GetRaceName(player) == "tau_race") then
 			Util_CreateSquadsAtPosition(player, "startbuilder", "tau_builder_squad", pos, 1)
@@ -285,7 +289,7 @@ function AddArmy_Builders()
 
 end
 
-function Util_CreateEntityAtPositionEx( playerId, EntitygroupName, EntityBlueprint, pos, numEntity )	
+function Util_CreateEntityAtPositionEx( playerId, EntitygroupName, EntityBlueprint, pos, numEntity )	--TODO отслеживаем делит дефолтной главки и спавним модовскую
 	local groupID = _CreateEntity_Private.CreateEntity(
 		playerId,
 		EntitygroupName,
@@ -298,8 +302,8 @@ function Util_CreateEntityAtPositionEx( playerId, EntitygroupName, EntityBluepri
 	return groupID
 end
 
-function sEntityHQ()
-    for i = 1, 2
+function sEntityHQ()  --TODO выбор, какую главку спавнить
+    for i = 1, 2  --TODO Непонятная хрень
 
             do
                         -- this player
@@ -330,7 +334,7 @@ function sEntityHQ()
 							hqBlueprint = "monolith"
 
 						elseif playerRace == "ork_race" then
-							hqBlueprint = "cf_ork_hq"
+							hqBlueprint = "cf_ork_hq"  --TODO орк
 
 						elseif playerRace == "sisters_race" then
 							hqBlueprint = "sisters_hq"
@@ -348,7 +352,7 @@ function sEntityHQ()
 						rEntity ( player, hqBlueprint )
             end
 
-	for i = 1, 1
+	for i = 1, 1  --TODO спавн главки 1 игрока
 
             do
                         -- this player
@@ -380,13 +384,13 @@ function sEntityHQ()
 							hqBlueprint = "monolith"
 
 						elseif playerRace == "ork_race" then
-							hqBlueprint = "cf_ork_hq"
+							hqBlueprint = "cf_ork_hq" --TODO орк
 
 						elseif playerRace == "sisters_race" then
 							hqBlueprint = "sisters_hq"
 
 						elseif playerRace == "space_marine_race" then
-							hqBlueprint = "cf_space_marine_hq"
+							hqBlueprint = "cf_space_marine_hq" --TODO СМ
 
 						elseif playerRace == "tau_race" then
 							hqBlueprint = "tau_hq"
@@ -397,7 +401,7 @@ function sEntityHQ()
 						end
     Util_CreateEntityAtPositionEx( player, hqtemp1, hqBlueprint, pos, 1)
             end
-	for i = 2, 2
+	for i = 2, 2 --TODO спавн главки 2 игрока
 
             do
                         -- this player
@@ -429,13 +433,13 @@ function sEntityHQ()
 							hqBlueprint = "monolith"
 
 						elseif playerRace == "ork_race" then
-							hqBlueprint = "cf_ork_hq"
+							hqBlueprint = "cf_ork_hq"  --TODO орк
 
 						elseif playerRace == "sisters_race" then
 							hqBlueprint = "sisters_hq"
 
 						elseif playerRace == "space_marine_race" then
-							hqBlueprint = "cf_space_marine_hq"
+							hqBlueprint = "cf_space_marine_hq"  --TODO СМ
 
 						elseif playerRace == "tau_race" then
 							hqBlueprint = "tau_hq"
@@ -448,7 +452,7 @@ function sEntityHQ()
             end
 end
 	
-Scar_AddInit(OnInit)
+Scar_AddInit(OnInit)  --TODO добавляем функции в инициализацию скара
 Scar_AddInit(AddArmy_Builders)
 Scar_AddInit(sEntityHQ)
 Scar_AddInit(DestroyHQ)
@@ -1014,50 +1018,62 @@ if sPlayer1Race == "chaos_marine_race" then
 restrictengineer1= "chaos_squad_slave"
 listrestrictplayer1=listrestrictChaos
 destroyhq1=	"chaos_hq"
+
 elseif sPlayer1Race == "dark_eldar_race" then 
 restrictengineer1= "dark_eldar_squad_slave"
 listrestrictplayer1=listrestrictDarkEldar
 destroyhq1=	"dark_eldar_hq"
+
 elseif sPlayer1Race == "eldar_race" then 
 restrictengineer1= "eldar_squad_bonesinger"
 listrestrictplayer1=listrestrictEldar
 destroyhq1= "eldar_hq"
+
 elseif sPlayer1Race == "guard_race" then 
 restrictengineer1= "guard_squad_enginseer"
 listrestrictplayer1=listrestrictGuard
 destroyhq1=	"guard_hq"
+
 elseif sPlayer1Race == "necron_race" then 
 restrictengineer1= "necron_builder_scarab_squad"
 listrestrictplayer1=listrestrictNecron
 destroyhq1= "necron_hq"
+
 elseif sPlayer1Race == "ork_race" then 
 restrictengineer1= "cf_ork_squad_grot"
 listrestrictplayer1=listrestrictORK
 destroyhq1= "ork_hq"
+
 elseif sPlayer1Race == "sisters_race" then 
 restrictengineer1= "sisters_squad_servitor"
 listrestrictplayer1=listrestrictSisters
 destroyhq1=	"sisters_hq"
+
 elseif sPlayer1Race == "space_marine_race" then 
 restrictengineer1= "cf_space_marine_squad_servitor"
 listrestrictplayer1=listrestrictSpaceMarine 
 destroyhq1=	"space_marine_hq"
+
 elseif sPlayer1Race == "tau_race" then 
 restrictengineer1= "tau_builder_squad"
 listrestrictplayer1=listrestrictTau
 destroyhq1=	"tau_hq"
+
 elseif sPlayer1Race == "deamons_race" then 
 restrictengineer1= "daemon_squad_lost_soul"
 listrestrictplayer1=listrestrictDeamon
 destroyhq1=	"daemon_hq"
+
 elseif sPlayer1Race == "inquisition_daemonhunt_race" then 
 restrictengineer1= "inquisition_squad_archivist"
 listrestrictplayer1=listrestrictInquisition
 destroyhq1=	"inquisition_tower_hq"
+
 elseif sPlayer1Race == "tyranids_race" then 
 restrictengineer1= "tyranids_squad_ripperswarm"
 listrestrictplayer1=listrestrictTyranids
 destroyhq1=	"tyranids_hq"
+
 end
 
 if sPlayer2Race == "chaos_marine_race" then 
@@ -1123,11 +1139,11 @@ end
 
 function Player_UnRestrictSquadList( playerID, list )
 	for i=1,table.getn(list) do
-		Player_UnRestrictSquad( playerID, list[i] )
+		Player_UnRestrictSquad( playerID, list[i] )  --TODO встроенная функция, че делает - не понятно
 	end
 end
 
-function UnRestrictCustomStructure()
+function UnRestrictCustomStructure()  --TODO разбан строений мода
 	local count = World_GetPlayerCount();
 	for i = 0, count-1
 	do
@@ -1192,19 +1208,19 @@ end
 
 function Transfer1 ()
 
-    SGroup_CreateIfNotFound(tempengineer1)
-    SGroup_AddGroup( tempengineer1, Player_GetSquads( ePlayer1ID ) )
-    SGroup_CreateIfNotFound(unitattack1)
-    rEngineer ( tempengineer1, unitattack1, restrictengineer1 )
+    SGroup_CreateIfNotFound(tempengineer1)  --TODO создаем группу, в которой останется только строитель
+    SGroup_AddGroup( tempengineer1, Player_GetSquads( ePlayer1ID ) )  --TODO добавляем все сквады в группу строителя
+    SGroup_CreateIfNotFound(unitattack1)  --TODO создаем группу, которая побежит в атаку(пока пустая)
+    rEngineer ( tempengineer1, unitattack1, restrictengineer1 ) --TODO заполняем атак-группу
 
-    SGroup_SetPlayerOwner ( unitattack1, ePlayer3ID ) 
-    SGroup_CreateIfNotFound(unitattack2)
-    SGroup_AddGroup( unitattack2, Player_GetSquads( ePlayer3ID ) )
-    Cmd_AttackMoveMarker ( unitattack2, "Attack2" )
+    SGroup_SetPlayerOwner ( unitattack1, ePlayer3ID ) --TODO передаем атак-группу боту
+    SGroup_CreateIfNotFound(unitattack2)  --TODO создаем еще одну пустую группу
+    SGroup_AddGroup( unitattack2, Player_GetSquads( ePlayer3ID ) )  --TODO всех юнитов бота добавляем в нее
+    Cmd_AttackMoveMarker ( unitattack2, "Attack2" )  --TODO бегим в атаку, АГЛА (Отправляем 2ю группу)
 
 end
 
-function Transfer2 ()
+function Transfer2 ()  --TODO то же самое для 2 игрока
 
 	SGroup_CreateIfNotFound(tempengineer2)
     SGroup_AddGroup( tempengineer2, Player_GetSquads( ePlayer2ID ) )
@@ -1218,7 +1234,7 @@ function Transfer2 ()
 	
 end
 
-function rEngineer (srcGroupName, destGroupName, bpname )
+function rEngineer (srcGroupName, destGroupName, bpname ) --TODO проходимся по юнитам в общей группе и добавляем в атакующую всех, кроме строителя
     srcID = SGroup_FromName( srcGroupName )
     destID = SGroup_CreateIfNotFound( destGroupName )
 
@@ -1233,7 +1249,7 @@ function rEngineer (srcGroupName, destGroupName, bpname )
 
 end
 
-function rEntity ( player, blueprintname )
+function rEntity ( player, blueprintname )  --TODO удаляет любое здание
 
 	local Blueprints = function(groupCaller, groupID)
 		local Destroyer = function(groupID, itemIndex, itemID)
