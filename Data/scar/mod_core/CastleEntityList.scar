@@ -8,6 +8,9 @@ t_entity_list = --TODO список юнитов/зданий для crasyInsane
 	"cf_space_marine_generator",
 	"cf_space_marine_listening_post",
 	"cf_space_marine_mine_field",
+
+	"cf_ork_boy_hut",
+	"cf_ork_boy_hq",
     -- CF Troops --
 	---------------
 	---------------
@@ -18,6 +21,10 @@ t_entity_list = --TODO список юнитов/зданий для crasyInsane
 	"cf_space_marine_tactical_bolter",
 	"cf_space_marine_tactical_missle",
 	"cf_space_marine_tactical_plasma",
+
+	"cf_ork_grot",
+	"cf_ork_shoota_boy",
+	"cf_ork_slugga_boy",
 	-- Buildings --
 	---------------
 	---------------
